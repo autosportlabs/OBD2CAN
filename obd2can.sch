@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.01" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="no" active="no"/>
 <layer number="2" name="Route2" color="1" fill="3" visible="no" active="no"/>
@@ -12090,11 +12090,11 @@ http://www.tag-connect.com</description>
 <sheets>
 <sheet>
 <plain>
-<text x="353.06" y="175.26" size="6.4516" layer="97" rot="R180">Copyright 2012-2013 Autosport Labs</text>
-<text x="353.06" y="195.58" size="6.4516" layer="97" rot="R180">CANx</text>
+<text x="353.06" y="175.26" size="6.4516" layer="97" rot="R180">Copyright 2014 Autosport Labs</text>
+<text x="353.06" y="195.58" size="6.4516" layer="97" rot="R180">OBD2CAN</text>
 <text x="265.43" y="206.883" size="6.4516" layer="97" font="vector">autosportlabs.net</text>
 <text x="359.918" y="-179.832" size="5.08" layer="97">A</text>
-<text x="353.06" y="185.42" size="6.4516" layer="97" rot="R180">CAN bus expansion for RaceCapture/Pro</text>
+<text x="353.06" y="185.42" size="6.4516" layer="97" rot="R180">OBD to CAN bus bridge</text>
 <rectangle x1="284.6705" y1="215.9635" x2="355.5365" y2="216.0905" layer="97"/>
 <rectangle x1="284.6705" y1="216.0905" x2="355.5365" y2="216.2175" layer="97"/>
 <rectangle x1="284.6705" y1="216.2175" x2="355.5365" y2="216.3445" layer="97"/>

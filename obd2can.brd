@@ -133,9 +133,9 @@
 <wire x1="39.7002" y1="0" x2="39.7002" y2="29.083" width="0" layer="20"/>
 <wire x1="39.7002" y1="29.083" x2="0" y2="29.083" width="0" layer="20"/>
 <wire x1="0" y1="29.083" x2="0" y2="0" width="0" layer="20"/>
-<text x="24.7142" y="0.381" size="0.8128" layer="21" font="vector">www.autosportlabs.net</text>
+<text x="11.2522" y="0.381" size="0.8128" layer="21" font="vector">www.autosportlabs.net</text>
 <text x="20.447" y="22.6822" size="0.8128" layer="21" font="vector" rot="R90">Rev A</text>
-<text x="32.385" y="5.715" size="1.4224" layer="21">CANx</text>
+<text x="29.845" y="1.397" size="1.4224" layer="21">OBD2CAN</text>
 <rectangle x1="35.5422" y1="24.9022" x2="42.6288" y2="24.9148" layer="21" rot="R90"/>
 <rectangle x1="35.5295" y1="24.9022" x2="42.6161" y2="24.9148" layer="21" rot="R90"/>
 <rectangle x1="35.5168" y1="24.9022" x2="42.6034" y2="24.9148" layer="21" rot="R90"/>
