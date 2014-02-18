@@ -11903,6 +11903,105 @@ W = angled&lt;p&gt;
 </deviceset>
 </devicesets>
 </library>
+<library name="TagConnect">
+<packages>
+<package name="TC2030-IDC">
+<smd name="2" x="-1.27" y="0.635" dx="0.7874" dy="0.7874" layer="1" roundness="100"/>
+<smd name="1" x="-1.27" y="-0.635" dx="0.7874" dy="0.7874" layer="1" roundness="100"/>
+<smd name="4" x="0" y="0.635" dx="0.7874" dy="0.7874" layer="1" roundness="100"/>
+<smd name="3" x="0" y="-0.635" dx="0.7874" dy="0.7874" layer="1" roundness="100"/>
+<smd name="6" x="1.27" y="0.635" dx="0.7874" dy="0.7874" layer="1" roundness="100"/>
+<smd name="5" x="1.27" y="-0.635" dx="0.7874" dy="0.7874" layer="1" roundness="100"/>
+<rectangle x1="-1.27" y1="-0.635" x2="1.27" y2="0.635" layer="41"/>
+<hole x="-2.54" y="0" drill="0.9906"/>
+<hole x="2.54" y="1.016" drill="0.9906"/>
+<hole x="2.54" y="-1.016" drill="0.9906"/>
+<hole x="-2.54" y="2.54" drill="2.3749"/>
+<hole x="-2.54" y="-2.54" drill="2.3749"/>
+<hole x="0.635" y="2.54" drill="2.3749"/>
+<hole x="0.635" y="-2.54" drill="2.3749"/>
+<rectangle x1="-3.3147" y1="-5.14985" x2="-1.7653" y2="-2.54" layer="40"/>
+<rectangle x1="-0.1397" y1="-5.14985" x2="1.4097" y2="-2.54" layer="40"/>
+<rectangle x1="-3.3147" y1="2.54" x2="-1.7653" y2="5.14985" layer="40"/>
+<rectangle x1="-0.1397" y1="2.54" x2="1.4097" y2="5.14985" layer="40"/>
+<text x="-4.445" y="-2.54" size="1.27" layer="27" rot="R90">&gt;VALUE</text>
+<text x="5.08" y="-2.54" size="1.27" layer="25" rot="R90">&gt;NAME</text>
+</package>
+<package name="TC2030-IDC-NL">
+<smd name="2" x="-1.27" y="0.635" dx="0.7874" dy="0.7874" layer="1" roundness="100"/>
+<smd name="1" x="-1.27" y="-0.635" dx="0.7874" dy="0.7874" layer="1" roundness="100"/>
+<smd name="4" x="0" y="0.635" dx="0.7874" dy="0.7874" layer="1" roundness="100"/>
+<smd name="3" x="0" y="-0.635" dx="0.7874" dy="0.7874" layer="1" roundness="100"/>
+<smd name="6" x="1.27" y="0.635" dx="0.7874" dy="0.7874" layer="1" roundness="100"/>
+<smd name="5" x="1.27" y="-0.635" dx="0.7874" dy="0.7874" layer="1" roundness="100"/>
+<rectangle x1="-1.27" y1="-0.635" x2="1.27" y2="0.635" layer="41"/>
+<hole x="-2.54" y="0" drill="0.9906"/>
+<hole x="2.54" y="1.016" drill="0.9906"/>
+<hole x="2.54" y="-1.016" drill="0.9906"/>
+<text x="-3.175" y="1.905" size="1.27" layer="27">&gt;VALUE</text>
+<text x="-3.175" y="-3.175" size="1.27" layer="25">&gt;NAME</text>
+</package>
+</packages>
+<symbols>
+<symbol name="TC2030-IDC">
+<wire x1="3.81" y1="-5.08" x2="-3.81" y2="-5.08" width="0.4064" layer="94"/>
+<wire x1="-3.81" y1="5.08" x2="-3.81" y2="-5.08" width="0.4064" layer="94"/>
+<wire x1="3.81" y1="-5.08" x2="3.81" y2="5.08" width="0.4064" layer="94"/>
+<wire x1="-3.81" y1="5.08" x2="3.81" y2="5.08" width="0.4064" layer="94"/>
+<wire x1="1.27" y1="2.54" x2="2.54" y2="2.54" width="0.6096" layer="94"/>
+<wire x1="1.27" y1="0" x2="2.54" y2="0" width="0.6096" layer="94"/>
+<wire x1="1.27" y1="-2.54" x2="2.54" y2="-2.54" width="0.6096" layer="94"/>
+<wire x1="-2.54" y1="2.54" x2="-1.27" y2="2.54" width="0.6096" layer="94"/>
+<wire x1="-2.54" y1="0" x2="-1.27" y2="0" width="0.6096" layer="94"/>
+<wire x1="-2.54" y1="-2.54" x2="-1.27" y2="-2.54" width="0.6096" layer="94"/>
+<text x="-3.81" y="-7.62" size="1.778" layer="96">&gt;VALUE</text>
+<text x="-3.81" y="5.842" size="1.778" layer="95">&gt;NAME</text>
+<pin name="1" x="7.62" y="-2.54" visible="pad" length="middle" direction="pas" swaplevel="1" rot="R180"/>
+<pin name="3" x="7.62" y="0" visible="pad" length="middle" direction="pas" swaplevel="1" rot="R180"/>
+<pin name="5" x="7.62" y="2.54" visible="pad" length="middle" direction="pas" swaplevel="1" rot="R180"/>
+<pin name="2" x="-7.62" y="-2.54" visible="pad" length="middle" direction="pas" swaplevel="1"/>
+<pin name="4" x="-7.62" y="0" visible="pad" length="middle" direction="pas" swaplevel="1"/>
+<pin name="6" x="-7.62" y="2.54" visible="pad" length="middle" direction="pas" swaplevel="1"/>
+</symbol>
+</symbols>
+<devicesets>
+<deviceset name="TC2030-IDC" prefix="TC">
+<description>Tag-Connect In Circuit Programming &amp; Debug Cable 6 Pin
+http://www.tag-connect.com</description>
+<gates>
+<gate name="A" symbol="TC2030-IDC" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="TC2030-IDC">
+<connects>
+<connect gate="A" pin="1" pad="1"/>
+<connect gate="A" pin="2" pad="2"/>
+<connect gate="A" pin="3" pad="3"/>
+<connect gate="A" pin="4" pad="4"/>
+<connect gate="A" pin="5" pad="5"/>
+<connect gate="A" pin="6" pad="6"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+<device name="-NL" package="TC2030-IDC-NL">
+<connects>
+<connect gate="A" pin="1" pad="1"/>
+<connect gate="A" pin="2" pad="2"/>
+<connect gate="A" pin="3" pad="3"/>
+<connect gate="A" pin="4" pad="4"/>
+<connect gate="A" pin="5" pad="5"/>
+<connect gate="A" pin="6" pad="6"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+</devicesets>
+</library>
 </libraries>
 <attributes>
 </attributes>
@@ -11973,6 +12072,20 @@ W = angled&lt;p&gt;
 <part name="AD13" library="supply2" deviceset="V--&gt;" device="" value=""/>
 <part name="R3" library="rcl" deviceset="R-US_" device="R0603" value="4.7K"/>
 <part name="P+8" library="supply2" deviceset="V+" device="" value="3.3v"/>
+<part name="TC1" library="TagConnect" deviceset="TC2030-IDC" device="-NL"/>
+<part name="GND6" library="supply1" deviceset="GND" device=""/>
+<part name="P+9" library="supply2" deviceset="V+" device="" value="3.3v"/>
+<part name="AD14" library="supply2" deviceset="V--&gt;" device="" value=""/>
+<part name="AD15" library="supply2" deviceset="V--&gt;" device="" value=""/>
+<part name="AD16" library="supply2" deviceset="V--&gt;" device="" value=""/>
+<part name="AD17" library="supply2" deviceset="V--&gt;" device="" value=""/>
+<part name="AD18" library="supply2" deviceset="V--&gt;" device="" value=""/>
+<part name="AD19" library="supply2" deviceset="V--&gt;" device="" value=""/>
+<part name="SW1" library="tactile_switch" deviceset="6X3.5_TACT" device=""/>
+<part name="R4" library="rcl" deviceset="R-US_" device="R0603" value="4.7K"/>
+<part name="GND9" library="supply1" deviceset="GND" device=""/>
+<part name="P+10" library="supply2" deviceset="V+" device="" value="3.3v"/>
+<part name="AD20" library="supply2" deviceset="V--&gt;" device="" value=""/>
 </parts>
 <sheets>
 <sheet>
@@ -14069,6 +14182,43 @@ W = angled&lt;p&gt;
 <attribute name="VALUE" x="-73.787" y="26.289" size="1.778" layer="96" rot="R180"/>
 </instance>
 <instance part="P+8" gate="1" x="-71.882" y="38.862"/>
+<instance part="TC1" gate="A" x="-27.94" y="-106.68" smashed="yes">
+<attribute name="VALUE" x="-36.83" y="-116.84" size="1.778" layer="96"/>
+<attribute name="NAME" x="-31.75" y="-100.838" size="1.778" layer="95"/>
+</instance>
+<instance part="GND6" gate="1" x="2.54" y="-119.38"/>
+<instance part="P+9" gate="1" x="-12.7" y="-111.76"/>
+<instance part="AD14" gate="G$1" x="-48.514" y="-109.22" smashed="yes" rot="R180">
+<attribute name="VALUE" x="-49.784" y="-108.458" size="1.778" layer="96" rot="R180"/>
+</instance>
+<instance part="AD15" gate="G$1" x="-48.514" y="-106.68" smashed="yes" rot="R180">
+<attribute name="VALUE" x="-49.784" y="-105.918" size="1.778" layer="96" rot="R180"/>
+</instance>
+<instance part="AD16" gate="G$1" x="-14.986" y="-106.68" smashed="yes">
+<attribute name="VALUE" x="-13.716" y="-107.442" size="1.778" layer="96"/>
+</instance>
+<instance part="AD17" gate="G$1" x="-4.826" y="-43.18" smashed="yes">
+<attribute name="VALUE" x="-3.556" y="-43.942" size="1.778" layer="96"/>
+</instance>
+<instance part="AD18" gate="G$1" x="-4.826" y="-40.64" smashed="yes">
+<attribute name="VALUE" x="-3.556" y="-41.402" size="1.778" layer="96"/>
+</instance>
+<instance part="AD19" gate="G$1" x="-57.15" y="-50.8" smashed="yes" rot="R180">
+<attribute name="VALUE" x="-58.42" y="-50.038" size="1.778" layer="96" rot="R180"/>
+</instance>
+<instance part="SW1" gate="G$1" x="-60.96" y="-5.08" smashed="yes">
+<attribute name="NAME" x="-54.356" y="-10.16" size="1.778" layer="95" rot="R180"/>
+<attribute name="VALUE" x="-54.61" y="-7.112" size="1.778" layer="96" rot="R180"/>
+</instance>
+<instance part="R4" gate="G$1" x="-74.422" y="-11.684" smashed="yes" rot="R90">
+<attribute name="NAME" x="-76.454" y="-10.1346" size="1.778" layer="95" rot="R180"/>
+<attribute name="VALUE" x="-76.327" y="-12.573" size="1.778" layer="96" rot="R180"/>
+</instance>
+<instance part="GND9" gate="1" x="-74.422" y="-21.844"/>
+<instance part="P+10" gate="1" x="-46.228" y="4.318"/>
+<instance part="AD20" gate="G$1" x="-80.01" y="-5.08" smashed="yes" rot="R180">
+<attribute name="VALUE" x="-81.28" y="-4.318" size="1.778" layer="96" rot="R180"/>
+</instance>
 </instances>
 <busses>
 </busses>
@@ -14146,6 +14296,17 @@ W = angled&lt;p&gt;
 <wire x1="-53.34" y1="20.32" x2="-45.72" y2="20.32" width="0.1524" layer="91"/>
 <pinref part="SW3" gate="G$1" pin="2"/>
 <pinref part="GND46" gate="1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="GND6" gate="1" pin="GND"/>
+<wire x1="2.54" y1="-104.14" x2="2.54" y2="-116.84" width="0.1524" layer="91"/>
+<pinref part="TC1" gate="A" pin="5"/>
+<wire x1="2.54" y1="-104.14" x2="-20.32" y2="-104.14" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="R4" gate="G$1" pin="1"/>
+<pinref part="GND9" gate="1" pin="GND"/>
+<wire x1="-74.422" y1="-19.304" x2="-74.422" y2="-16.764" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="+5V" class="0">
@@ -14348,6 +14509,20 @@ W = angled&lt;p&gt;
 <pinref part="P+8" gate="1" pin="V+"/>
 <wire x1="-71.882" y1="36.322" x2="-71.882" y2="32.258" width="0.1524" layer="91"/>
 </segment>
+<segment>
+<pinref part="TC1" gate="A" pin="1"/>
+<wire x1="-20.32" y1="-109.22" x2="-17.78" y2="-109.22" width="0.1524" layer="91"/>
+<wire x1="-17.78" y1="-109.22" x2="-17.78" y2="-116.84" width="0.1524" layer="91"/>
+<pinref part="P+9" gate="1" pin="V+"/>
+<wire x1="-17.78" y1="-116.84" x2="-12.7" y2="-116.84" width="0.1524" layer="91"/>
+<wire x1="-12.7" y1="-116.84" x2="-12.7" y2="-114.3" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="P+10" gate="1" pin="V+"/>
+<pinref part="SW1" gate="G$1" pin="2"/>
+<wire x1="-46.228" y1="1.778" x2="-46.228" y2="-5.08" width="0.1524" layer="91"/>
+<wire x1="-46.228" y1="-5.08" x2="-53.34" y2="-5.08" width="0.1524" layer="91"/>
+</segment>
 </net>
 <net name="UART1_TX" class="0">
 <segment>
@@ -14391,6 +14566,52 @@ W = angled&lt;p&gt;
 <pinref part="U3" gate="G$1" pin="NRST"/>
 <wire x1="-55.88" y1="-53.34" x2="-57.15" y2="-53.34" width="0.1524" layer="91"/>
 <label x="-57.658" y="-52.578" size="1.778" layer="95" rot="R180"/>
+</segment>
+<segment>
+<pinref part="TC1" gate="A" pin="3"/>
+<wire x1="-20.32" y1="-106.68" x2="-15.24" y2="-106.68" width="0.1524" layer="91"/>
+<label x="-14.732" y="-107.696" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="SWDIO" class="0">
+<segment>
+<pinref part="TC1" gate="A" pin="2"/>
+<wire x1="-35.56" y1="-109.22" x2="-48.26" y2="-109.22" width="0.1524" layer="91"/>
+<label x="-48.768" y="-108.458" size="1.778" layer="95" rot="R180"/>
+</segment>
+<segment>
+<pinref part="U3" gate="G$1" pin="PA13"/>
+<wire x1="-15.24" y1="-43.18" x2="-5.08" y2="-43.18" width="0.1524" layer="91"/>
+<label x="-4.318" y="-44.196" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="SWCLK" class="0">
+<segment>
+<pinref part="TC1" gate="A" pin="4"/>
+<wire x1="-35.56" y1="-106.68" x2="-48.26" y2="-106.68" width="0.1524" layer="91"/>
+<label x="-48.768" y="-105.918" size="1.778" layer="95" rot="R180"/>
+</segment>
+<segment>
+<pinref part="U3" gate="G$1" pin="PA14"/>
+<wire x1="-15.24" y1="-40.64" x2="-5.08" y2="-40.64" width="0.1524" layer="91"/>
+<label x="-4.318" y="-41.402" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="BOOT0" class="0">
+<segment>
+<pinref part="U3" gate="G$1" pin="BOOT0"/>
+<wire x1="-55.88" y1="-50.8" x2="-57.15" y2="-50.8" width="0.1524" layer="91"/>
+<wire x1="-55.88" y1="-50.8" x2="-57.15" y2="-50.8" width="0.1524" layer="91"/>
+<label x="-57.658" y="-50.038" size="1.778" layer="95" rot="R180"/>
+</segment>
+<segment>
+<pinref part="SW1" gate="G$1" pin="1"/>
+<wire x1="-66.04" y1="-5.08" x2="-74.422" y2="-5.08" width="0.1524" layer="91"/>
+<pinref part="R4" gate="G$1" pin="2"/>
+<wire x1="-74.422" y1="-5.08" x2="-80.01" y2="-5.08" width="0.1524" layer="91"/>
+<wire x1="-74.422" y1="-6.604" x2="-74.422" y2="-5.08" width="0.1524" layer="91"/>
+<junction x="-74.422" y="-5.08"/>
+<label x="-80.518" y="-4.318" size="1.778" layer="95" rot="R180"/>
 </segment>
 </net>
 </nets>
