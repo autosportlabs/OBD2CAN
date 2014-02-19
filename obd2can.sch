@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="0.01" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="no" active="no"/>
 <layer number="2" name="Route2" color="1" fill="3" visible="no" active="no"/>
@@ -12086,6 +12086,7 @@ http://www.tag-connect.com</description>
 <part name="GND9" library="supply1" deviceset="GND" device=""/>
 <part name="P+10" library="supply2" deviceset="V+" device="" value="3.3v"/>
 <part name="AD20" library="supply2" deviceset="V--&gt;" device="" value=""/>
+<part name="GND11" library="supply1" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -14219,6 +14220,7 @@ http://www.tag-connect.com</description>
 <instance part="AD20" gate="G$1" x="-80.01" y="-5.08" smashed="yes" rot="R180">
 <attribute name="VALUE" x="-81.28" y="-4.318" size="1.778" layer="96" rot="R180"/>
 </instance>
+<instance part="GND11" gate="1" x="142.24" y="13.97"/>
 </instances>
 <busses>
 </busses>
@@ -14307,6 +14309,12 @@ http://www.tag-connect.com</description>
 <pinref part="R4" gate="G$1" pin="1"/>
 <pinref part="GND9" gate="1" pin="GND"/>
 <wire x1="-74.422" y1="-19.304" x2="-74.422" y2="-16.764" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="U2" gate="G$1" pin="VREF"/>
+<wire x1="165.1" y1="33.02" x2="142.24" y2="33.02" width="0.1524" layer="91"/>
+<wire x1="142.24" y1="33.02" x2="142.24" y2="16.51" width="0.1524" layer="91"/>
+<pinref part="GND11" gate="1" pin="GND"/>
 </segment>
 </net>
 <net name="+5V" class="0">
