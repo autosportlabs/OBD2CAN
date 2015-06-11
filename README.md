@@ -11,7 +11,7 @@ LICENSE
 =======
 
 The technical artifacts provided in this project is covered in a modified version of the
-Creative Commons BY-SA license - see the LICENESE file for the full text.
+Creative Commons BY-SA license - see the LICENSE file for the full text.
 
 MORE INFO:
 
