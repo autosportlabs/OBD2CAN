@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="yes"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.05" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
+<grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="yes" altdistance="0.01" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="no" active="no"/>
 <layer number="2" name="Route2" color="14" fill="14" visible="no" active="no"/>
@@ -20160,6 +20160,13 @@ Source: www.kingbright.com</description>
 <pinref part="D26" gate="G$1" pin="C"/>
 </segment>
 </net>
+<net name="RST_NVM" class="0">
+<segment>
+<pinref part="U4" gate="G$1" pin="PA1/ADC_IN1/COMP1_INP/USART4_RX"/>
+<wire x1="716.28" y1="167.64" x2="718.82" y2="167.64" width="0.1524" layer="91"/>
+<label x="718.82" y="167.64" size="0.8128" layer="95" xref="yes"/>
+</segment>
+</net>
 </nets>
 </sheet>
 <sheet>
@@ -24724,9 +24731,9 @@ Source: www.kingbright.com</description>
 <wire x1="337.82" y1="213.36" x2="297.18" y2="213.36" width="0.1524" layer="91"/>
 <wire x1="337.82" y1="213.36" x2="337.82" y2="218.44" width="0.1524" layer="91"/>
 <junction x="337.82" y="213.36"/>
-<label x="350.52" y="213.36" size="1.778" layer="95"/>
 <pinref part="IC2" gate="G$1" pin="!OBD_TX_LED!/!RST_NVM"/>
 <pinref part="R11" gate="G$1" pin="2"/>
+<label x="363.22" y="213.36" size="1.778" layer="95" ratio="6" xref="yes"/>
 </segment>
 </net>
 <net name="N$30" class="0">
