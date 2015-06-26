@@ -17,6 +17,4 @@ MORE INFO:
 
 for more information visit http://www.autosportlabs.net
 
-![ScreenShot](https://github.com/autosportlabs/OBD2CAN/blob/master/obd2can.png?raw=true)
-
-
+![ScreenShot](obd2can.brd.png?raw=true)
