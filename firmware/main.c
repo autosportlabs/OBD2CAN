@@ -16,38 +16,74 @@
 
 #include "ch.h"
 #include "hal.h"
-#include "ch_test.h"
+#include <string.h>
+
+/**
+ * STN1110 data Receive thread
+ */
+
+char stn_rx_buf[512] = "booo\r\n";
 
 /*
- * Blue LED blinker thread, times are in milliseconds.
- */
-static THD_WORKING_AREA(waThread1, 128);
-static THD_FUNCTION(Thread1, arg) {
+static size_t sdGetLine(SerialDriver *sdp, uint8_t *buf) {
+  size_t n;
+  uint8_t c;
 
+  n = 0;
+  do {
+    c = sdGet(sdp);
+    sdPut(&SD1, c);
+    *buf++ = c;
+    n++;
+  } while (c != '\r');
+  *buf = 0;
+  return n;
+}
+*/
+static void debug_write(char *msg)
+{
+    sdWrite(&SD1, (uint8_t*)msg, strlen(msg));
+    sdPut(&SD1, '\r');
+    sdPut(&SD1, '\n');
+}
+
+static THD_WORKING_AREA(wa_STN1110_rx, 128);
+static THD_FUNCTION(STN1110_rx, arg) {
   (void)arg;
-  chRegSetThreadName("blinker1");
+  chRegSetThreadName("STN1110_RX");
+
+  debug_write("resetting");
+  palSetPadMode(GPIOB, GPIOB_RESET_STN1110, PAL_MODE_OUTPUT_PUSHPULL);
+  palClearPad(GPIOB, GPIOB_RESET_STN1110);
+  chThdSleepMilliseconds(10);
+  palSetPad(GPIOB, GPIOB_RESET_STN1110);
+  chThdSleepMilliseconds(100);
+  debug_write("after reset");
+
   while (true) {
-    palClearPad(GPIOC, GPIOC_LED_BLUE);
-    chThdSleepMilliseconds(500);
-    palSetPad(GPIOC, GPIOC_LED_BLUE);
-    chThdSleepMilliseconds(500);
+      /* Reset the STN1110 */
+      sdReadTimeout(&SD1,(uint8_t*)stn_rx_buf,sizeof(stn_rx_buf),5000);
+//sdGetLine(&SD1, (uint8_t*)stn_rx_buf);
+      debug_write(stn_rx_buf);
   }
 }
 
-/*
- * Green LED blinker thread, times are in milliseconds.
- */
-static THD_WORKING_AREA(waThread2, 128);
-static THD_FUNCTION(Thread2, arg) {
 
-  (void)arg;
-  chRegSetThreadName("blinker2");
-  while (true) {
-    palClearPad(GPIOC, GPIOC_LED_GREEN);
-    chThdSleepMilliseconds(250);
-    palSetPad(GPIOC, GPIOC_LED_GREEN);
-    chThdSleepMilliseconds(250);
-  }
+/**
+ * CAN data receive thread
+ */
+static THD_WORKING_AREA(wa_CAN_rx, 128);
+static THD_FUNCTION(CAN_rx, arg) {
+
+    (void)arg;
+    chRegSetThreadName("CAN_RX");
+    char * at_msg= "AT\r\n";
+    while (true) {
+        sdWrite(&SD2, (uint8_t*)at_msg, strlen(at_msg));
+
+        chThdSleepMilliseconds(1000);
+        debug_write("sending AT");
+    }
 }
 
 /*
@@ -65,19 +101,31 @@ int main(void) {
   halInit();
   chSysInit();
 
-  /*
-   * Activates the serial driver 1 using the driver default configuration.
-   * PA9 and PA10 are routed to USART1.
+  /* Initialize connection to STN1110 on SD2
    */
-  sdStart(&SD1, NULL);
-  palSetPadMode(GPIOA, 9, PAL_MODE_ALTERNATE(1));       /* USART1 TX.       */
-  palSetPadMode(GPIOA, 10, PAL_MODE_ALTERNATE(1));      /* USART1 RX.       */
+  static SerialConfig stn_uart_cfg = {9600};
+  //stn_uart_cfg.speed=9600;
+
+  palSetPadMode(GPIOA, 2, PAL_MODE_ALTERNATE(1));       /* USART2 TX.       */
+  palSetPadMode(GPIOA, 3, PAL_MODE_ALTERNATE(1));       /* USART2 RX.       */
+  sdStart(&SD2, &stn_uart_cfg);
 
   /*
-   * Creates the blinker threads.
+   * Activates the serial driver 1 (debug port) using the driver default configuration.
+   * PA9 and PA10 are routed to USART1.
    */
-  chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
-  chThdCreateStatic(waThread2, sizeof(waThread2), NORMALPRIO, Thread2, NULL);
+  palSetPadMode(GPIOA, 9, PAL_MODE_ALTERNATE(1));       /* USART1 TX.       */
+  palSetPadMode(GPIOA, 10, PAL_MODE_ALTERNATE(1));      /* USART1 RX.       */
+  sdStart(&SD1, NULL);
+
+
+
+
+  /*
+   * Creates the processing threads.
+   */
+  chThdCreateStatic(wa_STN1110_rx, sizeof(wa_STN1110_rx), NORMALPRIO, STN1110_rx, NULL);
+  chThdCreateStatic(wa_CAN_rx, sizeof(wa_CAN_rx), NORMALPRIO, CAN_rx, NULL);
 
   /*
    * Normal main() thread activity, in this demo it does nothing except
@@ -86,8 +134,6 @@ int main(void) {
    * driver 1.
    */
   while (true) {
-    if (palReadPad(GPIOA, GPIOA_BUTTON))
-      test_execute((BaseSequentialStream *)&SD1);
     chThdSleepMilliseconds(500);
   }
 }
