@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio.
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio.
 
     This file is part of ChibiOS.
 
@@ -25,8 +25,8 @@
  * @{
  */
 
-#ifndef CHSYSTYPES_H
-#define CHSYSTYPES_H
+#ifndef _CHSYSTYPES_H_
+#define _CHSYSTYPES_H_
 
 /*===========================================================================*/
 /* Module constants.                                                         */
@@ -115,11 +115,6 @@ typedef struct ch_system ch_system_t;
 /* Module macros.                                                            */
 /*===========================================================================*/
 
-/**
- * @brief   Utility to make the parameter a quoted string.
- */
-#define __CH_STRINGIFY(a) #a
-
 /*===========================================================================*/
 /* External declarations.                                                    */
 /*===========================================================================*/
@@ -136,6 +131,6 @@ extern "C" {
 /* Module inline functions.                                                  */
 /*===========================================================================*/
 
-#endif /* CHSYSTYPES_H */
+#endif /* _CHSYSTYPES_H_ */
 
 /** @} */

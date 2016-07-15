@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@
  * @{
  */
 
-#ifndef MEMSTREAMS_H
-#define MEMSTREAMS_H
+#ifndef _MEMSTREAMS_H_
+#define _MEMSTREAMS_H_
 
 /*===========================================================================*/
 /* Driver constants.                                                         */
@@ -90,6 +90,6 @@ extern "C" {
 }
 #endif
 
-#endif /* MEMSTREAMS_H */
+#endif /* _MEMSTREAMS_H_ */
 
 /** @} */

@@ -66,12 +66,7 @@ endif
 # Stack size to the allocated to the Cortex-M main/exceptions stack. This
 # stack is used for processing interrupts and exceptions.
 ifeq ($(USE_EXCEPTIONS_STACKSIZE),)
-  USE_EXCEPTIONS_STACKSIZE = 0x200
-endif
-
-# Enables the use of FPU (no, softfp, hard).
-ifeq ($(USE_FPU),)
-  USE_FPU = no
+  USE_EXCEPTIONS_STACKSIZE = 0x400
 endif
 
 #
@@ -86,20 +81,25 @@ endif
 PROJECT = main
 
 # Imported source files and paths
-CHIBIOS = ./ChibiOS
+CHIBIOS = ./ChibiOS/
 # Startup files.
-include $(CHIBIOS)/os/common/startup/ARMCMx/compilers/GCC/mk/startup_stm32f0xx.mk
+include $(CHIBIOS)/os/common/ports/ARMCMx/compilers/GCC/mk/startup_stm32f0xx.mk
 # HAL-OSAL files (optional).
 include $(CHIBIOS)/os/hal/hal.mk
 include $(CHIBIOS)/os/hal/ports/STM32/STM32F0xx/platform.mk
-#our custom board for OBD2CAN
-include board/board.mk
+include ./board/board.mk
+#os/hal/boards/ST_STM32F072B_DISCOVERY/board.mk
 include $(CHIBIOS)/os/hal/osal/rt/osal.mk
 # RTOS files (optional).
 include $(CHIBIOS)/os/rt/rt.mk
-include $(CHIBIOS)/os/common/ports/ARMCMx/compilers/GCC/mk/port_v6m.mk
+include $(CHIBIOS)/os/rt/ports/ARMCMx/compilers/GCC/mk/port_v6m.mk
 # Other files (optional).
-include $(CHIBIOS)/test/rt/test.mk
+
+STREAMSSRC = 	$(CHIBIOS)/os/hal/lib/streams/chprintf.c \
+				$(CHIBIOS)/os/hal/lib/streams/memstreams.c \
+				$(CHIBIOS)/os/hal/lib/streams/nullstreams.c
+
+STREAMSINC = $(CHIBIOS)/os/hal/lib/streams
 
 # Define linker script file here
 LDSCRIPT= $(STARTUPLD)/STM32F072xB.ld
@@ -114,6 +114,7 @@ CSRC = $(STARTUPSRC) \
        $(PLATFORMSRC) \
        $(BOARDSRC) \
        $(TESTSRC) \
+       $(STREAMSSRC) \
        main.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
@@ -141,13 +142,11 @@ TCSRC =
 TCPPSRC =
 
 # List ASM source files here
-ASMSRC =
-ASMXSRC = $(STARTUPASM) $(PORTASM) $(OSALASM)
+ASMSRC = $(STARTUPASM) $(PORTASM) $(OSALASM)
 
-INCDIR = $(CHIBIOS)/os/license \
-         $(STARTUPINC) $(KERNINC) $(PORTINC) $(OSALINC) \
+INCDIR = $(STARTUPINC) $(KERNINC) $(PORTINC) $(OSALINC) \
          $(HALINC) $(PLATFORMINC) $(BOARDINC) $(TESTINC) \
-         $(CHIBIOS)/os/various
+         $(STREAMSINC) $(CHIBIOS)/os/various
 
 #
 # Project, sources and paths
@@ -215,5 +214,5 @@ ULIBS =
 # End of user defines
 ##############################################################################
 
-RULESPATH = $(CHIBIOS)/os/common/startup/ARMCMx/compilers/GCC
+RULESPATH = $(CHIBIOS)/os/common/ports/ARMCMx/compilers/GCC
 include $(RULESPATH)/rules.mk

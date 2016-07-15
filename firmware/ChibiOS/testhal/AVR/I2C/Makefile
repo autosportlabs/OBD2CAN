@@ -63,7 +63,7 @@ include $(CHIBIOS)/os/hal/boards/ARDUINO_MEGA/board.mk
 include $(CHIBIOS)/os/hal/ports/AVR/platform.mk
 include $(CHIBIOS)/os/hal/osal/rt/osal.mk
 include $(CHIBIOS)/os/rt/rt.mk
-include $(CHIBIOS)/os/common/ports/AVR/compilers/GCC/mk/port.mk
+include $(CHIBIOS)/os/rt/ports/AVR/compilers/GCC/mk/port.mk
 
 # List C source files here. (C dependencies are automatically generated.)
 SRC = $(PORTSRC) \
@@ -103,7 +103,7 @@ DEBUG = dwarf-2
 #     Each directory must be seperated by a space.
 #     Use forward slashes for directory separators.
 #     For a directory that has spaces, enclose it in quotes.
-EXTRAINCDIRS = $(CHIBIOS)/os/license $(PORTINC) $(KERNINC) $(TESTINC) \
+EXTRAINCDIRS = $(PORTINC) $(KERNINC) $(TESTINC) \
                $(HALINC) $(OSALINC) $(PLATFORMINC) \
                $(BOARDINC) $(CHIBIOS)/os/various
 

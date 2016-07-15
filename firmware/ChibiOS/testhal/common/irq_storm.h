@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@
  * @{
  */
 
-#ifndef IRQ_STORM_H
-#define IRQ_STORM_H
+#ifndef _IRQ_STORM_H_
+#define _IRQ_STORM_H_
 
 /*===========================================================================*/
 /* Module constants.                                                         */
@@ -161,6 +161,6 @@ extern "C" {
 /* Module inline functions.                                                  */
 /*===========================================================================*/
 
-#endif /* IRQ_STORM_H */
+#endif /* _IRQ_STORM_H_ */
 
 /** @} */

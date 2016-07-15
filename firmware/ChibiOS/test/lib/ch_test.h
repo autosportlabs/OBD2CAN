@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@
  * @{
  */
 
-#ifndef CH_TEST_H
-#define CH_TEST_H
+#ifndef _CH_TEST_H_
+#define _CH_TEST_H_
 
 /*===========================================================================*/
 /* Module constants.                                                         */
@@ -156,7 +156,6 @@ typedef struct {
 
 #if !defined(__DOXYGEN__)
 extern unsigned test_step;
-extern bool test_global_fail;
 #endif
 
 #ifdef __cplusplus
@@ -188,6 +187,6 @@ extern "C" {
 
 #include "test_root.h"
 
-#endif /* CH_TEST_H */
+#endif /* _CH_TEST_H_ */
 
 /** @} */

@@ -17,29 +17,13 @@
 #include "ch.h"
 #include "hal.h"
 #include <string.h>
-
+#include "chprintf.h"
 /**
  * STN1110 data Receive thread
  */
 
-char stn_rx_buf[512] = "booo\r\n";
+char stn_rx_buf[1024] = "booo\r\n";
 
-/*
-static size_t sdGetLine(SerialDriver *sdp, uint8_t *buf) {
-  size_t n;
-  uint8_t c;
-
-  n = 0;
-  do {
-    c = sdGet(sdp);
-    sdPut(&SD1, c);
-    *buf++ = c;
-    n++;
-  } while (c != '\r');
-  *buf = 0;
-  return n;
-}
-*/
 static void debug_write(char *msg)
 {
     sdWrite(&SD1, (uint8_t*)msg, strlen(msg));
@@ -47,25 +31,45 @@ static void debug_write(char *msg)
     sdPut(&SD1, '\n');
 }
 
+static void reset_stn1110(void)
+{
+    debug_write("resetting");
+
+    /* set STN1110 NVM reset to disbled (normal running mode)
+     * Use internall pullup resistor to disable NVM
+     * */
+    palSetPadMode(GPIOA, GPIOB_RESET_NVM_STN1110, PAL_MODE_INPUT_PULLUP);
+
+    /* Toggle Reset Line */
+    palSetPadMode(GPIOB, GPIOB_RESET_STN1110, PAL_MODE_OUTPUT_PUSHPULL);
+    palClearPad(GPIOB, GPIOB_RESET_STN1110);
+    chThdSleepMilliseconds(10);
+    palSetPad(GPIOB, GPIOB_RESET_STN1110);
+    chThdSleepMilliseconds(100);
+    debug_write("after reset");
+}
+
 static THD_WORKING_AREA(wa_STN1110_rx, 128);
 static THD_FUNCTION(STN1110_rx, arg) {
   (void)arg;
   chRegSetThreadName("STN1110_RX");
 
-  debug_write("resetting");
-  palSetPadMode(GPIOB, GPIOB_RESET_STN1110, PAL_MODE_OUTPUT_PUSHPULL);
-  palClearPad(GPIOB, GPIOB_RESET_STN1110);
-  chThdSleepMilliseconds(10);
-  palSetPad(GPIOB, GPIOB_RESET_STN1110);
-  chThdSleepMilliseconds(100);
-  debug_write("after reset");
+  reset_stn1110();
+  char * at_msg= "AT\r\n";
 
   while (true) {
       /* Reset the STN1110 */
-      sdReadTimeout(&SD1,(uint8_t*)stn_rx_buf,sizeof(stn_rx_buf),5000);
-//sdGetLine(&SD1, (uint8_t*)stn_rx_buf);
+
+      debug_write("sending AT");
+      sdWrite(&SD2, (uint8_t*)at_msg, strlen(at_msg));
+      chThdSleepMilliseconds(1000);
+      debug_write("Waiting for AT response");
+      int bytes_read = sdReadTimeout(&SD2,(uint8_t*)stn_rx_buf,sizeof(stn_rx_buf),5000);
+     // chprintf(&SD1, "Bytes read %i\r\n", bytes_read);
+      //sdGetLine(&SD1, (uint8_t*)stn_rx_buf);
       debug_write(stn_rx_buf);
   }
+  return 0;
 }
 
 
@@ -103,12 +107,12 @@ int main(void) {
 
   /* Initialize connection to STN1110 on SD2
    */
-  static SerialConfig stn_uart_cfg = {9600};
-  //stn_uart_cfg.speed=9600;
+  static SerialConfig stn_uart_cfg;
+  stn_uart_cfg.speed=9600;
 
   palSetPadMode(GPIOA, 2, PAL_MODE_ALTERNATE(1));       /* USART2 TX.       */
   palSetPadMode(GPIOA, 3, PAL_MODE_ALTERNATE(1));       /* USART2 RX.       */
-  sdStart(&SD2, &stn_uart_cfg);
+  sdStart(&SD2, NULL);
 
   /*
    * Activates the serial driver 1 (debug port) using the driver default configuration.
@@ -125,7 +129,7 @@ int main(void) {
    * Creates the processing threads.
    */
   chThdCreateStatic(wa_STN1110_rx, sizeof(wa_STN1110_rx), NORMALPRIO, STN1110_rx, NULL);
-  chThdCreateStatic(wa_CAN_rx, sizeof(wa_CAN_rx), NORMALPRIO, CAN_rx, NULL);
+//  chThdCreateStatic(wa_CAN_rx, sizeof(wa_CAN_rx), NORMALPRIO, CAN_rx, NULL);
 
   /*
    * Normal main() thread activity, in this demo it does nothing except

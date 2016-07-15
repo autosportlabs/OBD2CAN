@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@
  * @{
  */
 
-#ifndef CHCONF_H
-#define CHCONF_H
+#ifndef _CHCONF_H_
+#define _CHCONF_H_
 
 /*===========================================================================*/
 /**
@@ -276,6 +276,14 @@
 #define CH_CFG_USE_MAILBOXES                TRUE
 
 /**
+ * @brief   I/O Queues APIs.
+ * @details If enabled then the I/O queues APIs are included in the kernel.
+ *
+ * @note    The default is @p TRUE.
+ */
+#define CH_CFG_USE_QUEUES                   TRUE
+
+/**
  * @brief   Core Memory Manager APIs.
  * @details If enabled then the core memory manager APIs are included
  *          in the kernel.
@@ -374,7 +382,8 @@
 
 /**
  * @brief   Debug option, trace buffer.
- * @details If enabled then the trace buffer is activated.
+ * @details If enabled then the context switch circular trace buffer is
+ *          activated.
  *
  * @note    The default is @p FALSE.
  */
@@ -492,6 +501,6 @@
 /* Port-specific settings (override port settings defaulted in chcore.h).    */
 /*===========================================================================*/
 
-#endif  /* CHCONF_H */
+#endif  /* _CHCONF_H_ */
 
 /** @} */

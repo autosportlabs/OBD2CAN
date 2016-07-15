@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@
  * @{
  */
 
-#ifndef VIC_H
-#define VIC_H
+#ifndef _VIC_H_
+#define _VIC_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,6 +34,6 @@ extern "C" {
 }
 #endif
 
-#endif /* VIC_H */
+#endif /* _VIC_H_ */
 
 /** @} */

@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -114,12 +114,9 @@ static void hal_lld_backup_domain_init(void) {
 void hal_lld_init(void) {
 
   /* Reset of all peripherals. AHB3 is not reseted because it could have
-     been initialized in the board initialization file (board.c) and AHB2 is not
-     present in STM32F410. */
+     been initialized in the board initialization file (board.c).*/
   rccResetAHB1(~0);
-#if !defined(STM32F410xx)
   rccResetAHB2(~0);
-#endif
   rccResetAPB1(~RCC_APB1RSTR_PWRRST);
   rccResetAPB2(~0);
 
@@ -176,7 +173,7 @@ void stm32_clock_init(void) {
   /* Registers finally cleared to reset values.*/
   RCC->CR &= RCC_CR_HSITRIM | RCC_CR_HSION; /* CR Reset value.              */
   RCC->CFGR = 0;                            /* CFGR reset value.            */
-  
+
 #if STM32_HSE_ENABLED
   /* HSE activation.*/
 #if defined(STM32_HSE_BYPASS)
@@ -223,74 +220,36 @@ void stm32_clock_init(void) {
   /* Waiting for PLL lock.*/
   while (!(RCC->CR & RCC_CR_PLLRDY))
     ;
-#endif /* STM32_ACTIVATE_PLL */
+#endif /* STM32_OVERDRIVE_REQUIRED */
 
 #if STM32_ACTIVATE_PLLI2S
   /* PLLI2S activation.*/
-  RCC->PLLI2SCFGR = STM32_PLLI2SR | STM32_PLLI2SN | STM32_PLLI2SP |
-                    STM32_PLLI2SQ | STM32_PLLI2SM;
+  RCC->PLLI2SCFGR = STM32_PLLI2SR | STM32_PLLI2SN;
   RCC->CR |= RCC_CR_PLLI2SON;
 
   /* Waiting for PLL lock.*/
   while (!(RCC->CR & RCC_CR_PLLI2SRDY))
     ;
-#endif /* STM32_ACTIVATE_PLLI2S */
+#endif
 
 #if STM32_ACTIVATE_PLLSAI
   /* PLLSAI activation.*/
-  RCC->PLLSAICFGR = STM32_PLLSAIR | STM32_PLLSAIN | STM32_PLLSAIP |
-                    STM32_PLLSAIQ | STM32_PLLSAIM;
-  
+  RCC->PLLSAICFGR = STM32_PLLSAIN | STM32_PLLSAIR | STM32_PLLSAIQ;
+  RCC->DCKCFGR = (RCC->DCKCFGR & ~RCC_DCKCFGR_PLLSAIDIVR) | STM32_PLLSAIR_POST;
   RCC->CR |= RCC_CR_PLLSAION;
 
   /* Waiting for PLL lock.*/
   while (!(RCC->CR & RCC_CR_PLLSAIRDY))
     ;
-#endif /* STM32_ACTIVATE_PLLSAI */
+#endif
 
   /* Other clock-related settings (dividers, MCO etc).*/
   RCC->CFGR = STM32_MCO2PRE | STM32_MCO2SEL | STM32_MCO1PRE | STM32_MCO1SEL |
               STM32_I2SSRC | STM32_RTCPRE | STM32_PPRE2 | STM32_PPRE1 |
               STM32_HPRE;
 
-#if defined(STM32F446xx)
-  /* DCKCFGR register initialization, note, must take care of the _OFF
-   pseudo settings.*/
-  {
-    uint32_t dckcfgr = 0;
-#if STM32_SAI2SEL != STM32_SAI2SEL_OFF
-    dckcfgr |= STM32_SAI2SEL;
-#endif
-#if STM32_SAI1SEL != STM32_SAI1SEL_OFF
-    dckcfgr |= STM32_SAI1SEL;
-#endif
-#if STM32_PLLSAIDIVR != STM32_PLLSAIDIVR_OFF
-    dckcfgr |= STM32_PLLSAIDIVR;
-#endif
-    RCC->DCKCFGR = dckcfgr | STM32_PLLI2SDIVQ | STM32_PLLSAIDIVQ;
-  }
-  RCC->DCKCFGR2 = STM32_CK48MSEL;
-#elif defined(STM32F469xx) || defined(STM32F479xx)
-  /* DCKCFGR register initialization, note, must take care of the _OFF
-   pseudo settings.*/
-  {
-    uint32_t dckcfgr = 0;
-  #if STM32_SAI2SEL != STM32_SAI2SEL_OFF
-    dckcfgr |= STM32_SAI2SEL;
-  #endif
-  #if STM32_SAI1SEL != STM32_SAI1SEL_OFF
-    dckcfgr |= STM32_SAI1SEL;
-  #endif
-  #if STM32_PLLSAIDIVR != STM32_PLLSAIDIVR_OFF
-    dckcfgr |= STM32_PLLSAIDIVR;
-  #endif
-    RCC->DCKCFGR = dckcfgr | STM32_PLLI2SDIVQ | STM32_PLLSAIDIVQ | 
-                   STM32_CK48MSEL;
-  }
-#endif
-
   /* Flash setup.*/
-#if !defined(STM32_REMOVE_REVISION_A_FIX)
+#if defined(STM32_USE_REVISION_A_FIX)
   /* Some old revisions of F4x MCUs randomly crashes with compiler
      optimizations enabled AND flash caches enabled. */
   if ((DBGMCU->IDCODE == 0x20006411) && (SCB->CPUID == 0x410FC241))

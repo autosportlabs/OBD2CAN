@@ -1,7 +1,7 @@
 #!/bin/bash
 export XOPT XDEFS
 
-XOPT="-ggdb -O0 -fomit-frame-pointer -DTEST_DELAY_BETWEEN_TESTS=0 -fprofile-arcs -ftest-coverage"
+XOPT="-ggdb -O0 -fomit-frame-pointer -DDELAY_BETWEEN_TESTS=0 -fprofile-arcs -ftest-coverage"
 XDEFS=""
 
 function clean() {
@@ -24,7 +24,7 @@ function compile() {
 
 function execute_test() {
   echo -n "  * Testing..."
-  if ! ./build/ch > testlog.txt
+  if ! ./ch > testlog.txt
   then
     echo "failed"
     clean
@@ -38,7 +38,7 @@ function coverage() {
   echo -n "  * Coverage..."
   mkdir reports/${1}_gcov 2> /dev/null
   echo "Configuration $2" > gcovlog.txt
-  echo "----------------------------------------------------------------" >> gcovlog.txt
+  echo "----------------------------------------------------------------" >> reports/gcovlog.txt
   if ! make gcov >> gcovlog.txt 2> /dev/null
   then
     echo "failed"
@@ -90,7 +90,7 @@ mkdir reports 2> /dev/null
 test cfg1 ""
 test cfg2 "-DCH_CFG_OPTIMIZE_SPEED=FALSE"
 test cfg3 "-DCH_CFG_TIME_QUANTUM=0"
-test cfg4 "-DCH_CFG_USE_REGISTRY=FALSE -DCH_CFG_USE_DYNAMIC=FALSE"
+test cfg4 "-DCH_CFG_USE_REGISTRY=FALSE"
 test cfg5 "-DCH_CFG_USE_TM=FALSE"
 test cfg6 "-DCH_CFG_USE_SEMAPHORES=FALSE -DCH_CFG_USE_MAILBOXES=FALSE"
 test cfg7 "-DCH_CFG_USE_SEMAPHORES_PRIORITY=TRUE"
@@ -112,11 +112,11 @@ test cfg22 "-DCH_DBG_STATISTICS=TRUE"
 test cfg23 "-DCH_DBG_SYSTEM_STATE_CHECK=TRUE"
 test cfg24 "-DCH_DBG_ENABLE_CHECKS=TRUE"
 test cfg25 "-DCH_DBG_ENABLE_ASSERTS=TRUE"
-test cfg26 "-DCH_DBG_TRACE_MASK=CH_DBG_TRACE_MASK_ALL"
+test cfg26 "-DCH_DBG_ENABLE_TRACE=TRUE"
 #test cfg27 "-DCH_DBG_ENABLE_STACK_CHECK=TRUE"
 test cfg28 "-DCH_DBG_FILL_THREADS=TRUE"
 test cfg29 "-DCH_DBG_THREADS_PROFILING=FALSE"
-test cfg30 "-DCH_DBG_SYSTEM_STATE_CHECK=TRUE -DCH_DBG_ENABLE_CHECKS=TRUE -DCH_DBG_ENABLE_ASSERTS=TRUE -DCH_DBG_TRACE_MASK=CH_DBG_TRACE_MASK_ALL -DCH_DBG_FILL_THREADS=TRUE"
+test cfg30 "-DCH_DBG_SYSTEM_STATE_CHECK=TRUE -DCH_DBG_ENABLE_CHECKS=TRUE -DCH_DBG_ENABLE_ASSERTS=TRUE -DCH_DBG_ENABLE_TRACE=TRUE -DCH_DBG_FILL_THREADS=TRUE"
 
 rm *log.txt 2> /dev/null
 echo

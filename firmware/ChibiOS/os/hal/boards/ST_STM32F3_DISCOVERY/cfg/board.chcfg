@@ -57,7 +57,7 @@
         Mode="Input"
         Alternate="0" />
       <pin5
-        ID="SPI1_SCK L3GD20_SCL"
+        ID="SPI1_SCK"
         Type="PushPull"
         Speed="Maximum"
         Resistor="Floating"
@@ -65,7 +65,7 @@
         Mode="Alternate"
         Alternate="5" ></pin5>
       <pin6
-        ID="SPI1_MISO L3GD20_SDO"
+        ID="SPI1_MISO"
         Type="PushPull"
         Speed="Maximum"
         Resistor="PullUp"
@@ -73,7 +73,7 @@
         Mode="Alternate"
         Alternate="5" />
       <pin7
-        ID="SPI1_MOSI L3GD20_SDI"
+        ID="SPI1_MOSI"
         Type="PushPull"
         Speed="Maximum"
         Resistor="Floating"
@@ -119,7 +119,7 @@
         Resistor="Floating"
         Level="High"
         Mode="Alternate"
-        Alternate="14" />
+        Alternate="14" ></pin12>
       <pin13
         ID="SWDIO"
         Type="PushPull"
@@ -195,7 +195,7 @@
         Mode="Input"
         Alternate="0" ></pin5>
       <pin6
-        ID="I2C1_SCL LSM303DLHC_SCL"
+        ID="I2C1_SCL"
         Type="OpenDrain"
         Speed="Maximum"
         Resistor="Floating"
@@ -203,7 +203,7 @@
         Mode="Alternate"
         Alternate="4" />
       <pin7
-        ID="I2C1_SDA LSM303DLHC_SDA"
+        ID="I2C1_SDA"
         Type="OpenDrain"
         Speed="Maximum"
         Resistor="Floating"
@@ -553,7 +553,7 @@
         Mode="Input"
         Alternate="0" />
       <pin2
-        ID="LSM303DLHC_DRDY"
+        ID="LSM303_DRDY"
         Type="PushPull"
         Speed="Minimum"
         Resistor="PullUp"
@@ -561,7 +561,7 @@
         Mode="Input"
         Alternate="0" />
       <pin3
-        ID="SPI1_CS L3GD20_CS"
+        ID="SPI1_CS"
         Type="PushPull"
         Speed="Maximum"
         Resistor="Floating"
@@ -569,7 +569,7 @@
         Mode="Output"
         Alternate="0" ></pin3>
       <pin4
-        ID="LSM303DLHC_INT1"
+        ID="LSM303_INT1"
         Type="PushPull"
         Speed="Minimum"
         Resistor="PullUp"
@@ -577,7 +577,7 @@
         Mode="Input"
         Alternate="0" />
       <pin5
-        ID="LSM303DLHC_INT2"
+        ID="LSM303_INT2"
         Type="PushPull"
         Speed="Minimum"
         Resistor="PullUp"

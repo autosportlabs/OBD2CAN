@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 
 #include "ch.h"
 #include "hal.h"
-#include "ch_test.h"
+#include "test.h"
 #include "console.h"
 
 /*
@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
   conInit();
   chSysInit();
 
-  test_execute((BaseSequentialStream *)&CD1);
+  TestThread(&CD1);
   if (test_global_fail)
     exit(1);
   else

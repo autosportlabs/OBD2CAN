@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@
  * @{
  */
 
-#ifndef LCD3310_H
-#define LCD3310_H
+#ifndef _LCD3310_H_
+#define _LCD3310_H_
 
 /*===========================================================================*/
 /* Driver constants.                                                         */
@@ -89,6 +89,6 @@ extern "C" {
 }
 #endif
 
-#endif /* LCD3310_H */
+#endif /* _LCD3310_H_ */
 
 /** @} */

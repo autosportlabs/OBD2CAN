@@ -704,7 +704,7 @@
                                      PIN_ODR_HIGH(GPIOC_LCD_SEG14) |        \
                                      PIN_ODR_HIGH(GPIOC_LCD_SEG9) |         \
                                      PIN_ODR_HIGH(GPIOC_LCD_SEG13) |        \
-                                     PIN_ODR_HIGH(GPIOC_OTG_FS_PSON) |      \
+                                     PIN_ODR_LOW(GPIOC_OTG_FS_PSON) |       \
                                      PIN_ODR_HIGH(GPIOC_OTG_FS_OVCURR) |    \
                                      PIN_ODR_HIGH(GPIOC_OTG_FS_VBUS) |      \
                                      PIN_ODR_HIGH(GPIOC_OTG_FS_ID) |        \

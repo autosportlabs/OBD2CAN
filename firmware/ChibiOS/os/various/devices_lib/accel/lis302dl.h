@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@
  * @{
  */
 
-#ifndef LIS302DL_H
-#define LIS302DL_H
+#ifndef _LIS302DL_H_
+#define _LIS302DL_H_
 
 /*===========================================================================*/
 /* Driver constants.                                                         */
@@ -88,6 +88,6 @@ extern "C" {
 }
 #endif
 
-#endif /* LIS302DL_H */
+#endif /* _LIS302DL_H_ */
 
 /** @} */

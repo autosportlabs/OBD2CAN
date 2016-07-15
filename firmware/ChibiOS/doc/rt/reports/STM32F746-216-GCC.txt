@@ -1,8 +1,8 @@
 
 *** ChibiOS/RT test suite
 ***
-*** Kernel:       4.0.0
-*** Compiled:     Mar 27 2016 - 16:28:00
+*** Kernel:       3.1.0
+*** Compiled:     Jan  4 2016 - 11:31:27
 *** Compiler:     GCC 4.9.3 20150529 (release) [ARM/embedded-4_9-branch revision 227977]
 *** Architecture: ARMv7E-M
 *** Core Variant: Cortex-M7
@@ -92,52 +92,62 @@
 --- Test Case 10.3 (Dynamic APIs, registry and references)
 --- Result: SUCCESS
 ----------------------------------------------------------------------------
---- Test Case 11.1 (Benchmark, messages #1)
---- Score : 1023687 msgs/S, 2047374 ctxswc/S
+--- Test Case 11.1 (Queues, input queues)
 --- Result: SUCCESS
 ----------------------------------------------------------------------------
---- Test Case 11.2 (Benchmark, messages #2)
---- Score : 860551 msgs/S, 1721102 ctxswc/S
+--- Test Case 11.2 (Queues, output queues)
 --- Result: SUCCESS
 ----------------------------------------------------------------------------
---- Test Case 11.3 (Benchmark, messages #3)
---- Score : 860550 msgs/S, 1721100 ctxswc/S
+--- Test Case 12.1 (Benchmark, messages #1)
+--- Score : 1074619 msgs/S, 2149238 ctxswc/S
 --- Result: SUCCESS
 ----------------------------------------------------------------------------
---- Test Case 11.4 (Benchmark, context switch)
---- Score : 5008664 ctxswc/S
+--- Test Case 12.2 (Benchmark, messages #2)
+--- Score : 947361 msgs/S, 1894722 ctxswc/S
 --- Result: SUCCESS
 ----------------------------------------------------------------------------
---- Test Case 11.5 (Benchmark, threads, full cycle)
---- Score : 703577 threads/S
+--- Test Case 12.3 (Benchmark, messages #3)
+--- Score : 947361 msgs/S, 1894722 ctxswc/S
 --- Result: SUCCESS
 ----------------------------------------------------------------------------
---- Test Case 11.6 (Benchmark, threads, create only)
---- Score : 896259 threads/S
+--- Test Case 12.4 (Benchmark, context switch)
+--- Score : 4909064 ctxswc/S
 --- Result: SUCCESS
 ----------------------------------------------------------------------------
---- Test Case 11.7 (Benchmark, mass reschedule, 5 threads)
---- Score : 354097 reschedules/S, 2124582 ctxswc/S
+--- Test Case 12.5 (Benchmark, threads, full cycle)
+--- Score : 717602 threads/S
 --- Result: SUCCESS
 ----------------------------------------------------------------------------
---- Test Case 11.8 (Benchmark, round robin context switching)
---- Score : 2303980 ctxswc/S
+--- Test Case 12.6 (Benchmark, threads, create only)
+--- Score : 1136835 threads/S
 --- Result: SUCCESS
 ----------------------------------------------------------------------------
---- Test Case 11.9 (Benchmark, virtual timers set/reset)
+--- Test Case 12.7 (Benchmark, mass reschedule, 5 threads)
+--- Score : 349378 reschedules/S, 2096268 ctxswc/S
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 12.8 (Benchmark, round robin context switching)
+--- Score : 2548660 ctxswc/S
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 12.9 (Benchmark, I/O Queues throughput)
+--- Score : 2530008 bytes/S
+--- Result: SUCCESS
+----------------------------------------------------------------------------
+--- Test Case 12.10 (Benchmark, virtual timers set/reset)
 --- Score : 2000026 timers/S
 --- Result: SUCCESS
 ----------------------------------------------------------------------------
---- Test Case 11.10 (Benchmark, semaphores wait/signal)
---- Score : 3031568 wait+signal/S
+--- Test Case 12.11 (Benchmark, semaphores wait/signal)
+--- Score : 3052996 wait+signal/S
 --- Result: SUCCESS
 ----------------------------------------------------------------------------
---- Test Case 11.11 (Benchmark, mutexes lock/unlock)
---- Score : 2472136 lock+unlock/S
+--- Test Case 12.12 (Benchmark, mutexes lock/unlock)
+--- Score : 2489904 lock+unlock/S
 --- Result: SUCCESS
 ----------------------------------------------------------------------------
---- Test Case 11.12 (Benchmark, RAM footprint)
---- System: 120 bytes
+--- Test Case 12.13 (Benchmark, RAM footprint)
+--- System: 336 bytes
 --- Thread: 68 bytes
 --- Timer : 20 bytes
 --- Semaph: 12 bytes
@@ -145,6 +155,7 @@
 --- EventL: 20 bytes
 --- Mutex : 16 bytes
 --- CondV.: 8 bytes
+--- Queue : 36 bytes
 --- MailB.: 40 bytes
 --- Result: SUCCESS
 ----------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@
  * @{
  */
 
-#ifndef LWIPTHREAD_H
-#define LWIPTHREAD_H
+#ifndef _LWIPTHREAD_H_
+#define _LWIPTHREAD_H_
 
 #include <lwip/opt.h>
 
@@ -156,6 +156,6 @@ extern "C" {
 }
 #endif
 
-#endif /* LWIPTHREAD_H */
+#endif /* _LWIPTHREAD_H_ */
 
 /** @} */

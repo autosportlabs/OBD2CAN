@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
     limitations under the License.
 */
 
-#ifndef MCUCONF_H
-#define MCUCONF_H
+#ifndef _MCUCONF_H_
+#define _MCUCONF_H_
 
 /*
  * STM32F4xx drivers configuration.
@@ -238,8 +238,8 @@
  */
 #define STM32_SDC_SDIO_DMA_PRIORITY         3
 #define STM32_SDC_SDIO_IRQ_PRIORITY         9
-#define STM32_SDC_WRITE_TIMEOUT_MS          1000
-#define STM32_SDC_READ_TIMEOUT_MS           1000
+#define STM32_SDC_WRITE_TIMEOUT_MS          250
+#define STM32_SDC_READ_TIMEOUT_MS           25
 #define STM32_SDC_CLOCK_ACTIVATION_DELAY    10
 #define STM32_SDC_SDIO_UNALIGNED_SUPPORT    TRUE
 #define STM32_SDC_SDIO_DMA_STREAM           STM32_DMA_STREAM_ID(2, 3)
@@ -339,4 +339,4 @@
  */
 #define STM32_WDG_USE_IWDG                  TRUE
 
-#endif /* MCUCONF_H */
+#endif /* _MCUCONF_H_ */

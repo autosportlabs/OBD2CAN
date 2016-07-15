@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio.
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio.
 
     This file is part of ChibiOS.
 
@@ -25,8 +25,8 @@
  * @{
  */
 
-#ifndef CHCUSTOMER_H
-#define CHCUSTOMER_H
+#ifndef _CHCUSTOMER_H_
+#define _CHCUSTOMER_H_
 
 /*===========================================================================*/
 /* Module constants.                                                         */
@@ -66,6 +66,6 @@
 /* Module inline functions.                                                  */
 /*===========================================================================*/
 
-#endif /* CHCUSTOMER_H */
+#endif /* _CHCUSTOMER_H_ */
 
 /** @} */

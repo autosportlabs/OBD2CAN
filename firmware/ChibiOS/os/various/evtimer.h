@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@
  * @{
  */
 
-#ifndef EVTIMER_H
-#define EVTIMER_H
+#ifndef _EVTIMER_H_
+#define _EVTIMER_H_
 
 /*===========================================================================*/
 /* Module constants.                                                         */
@@ -89,6 +89,6 @@ static inline void vevtStop(event_timer_t *etp) {
   chVTReset(&etp->et_vt);
 }
 
-#endif /* EVTIMER_H */
+#endif /* _EVTIMER_H_ */
 
 /** @} */

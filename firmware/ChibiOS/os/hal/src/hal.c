@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -93,9 +93,6 @@ void halInit(void) {
 #endif
 #if (HAL_USE_PWM == TRUE) || defined(__DOXYGEN__)
   pwmInit();
-#endif
-#if (HAL_USE_QSPI == TRUE) || defined(__DOXYGEN__)
-  qspiInit();
 #endif
 #if (HAL_USE_SERIAL == TRUE) || defined(__DOXYGEN__)
   sdInit();

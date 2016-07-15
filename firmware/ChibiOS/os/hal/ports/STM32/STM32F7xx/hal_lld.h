@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -33,8 +33,8 @@
  * @{
  */
 
-#ifndef HAL_LLD_H
-#define HAL_LLD_H
+#ifndef _HAL_LLD_H_
+#define _HAL_LLD_H_
 
 #include "stm32_registry.h"
 
@@ -59,12 +59,6 @@
 
 #elif defined(STM32F756xx)
 #define PLATFORM_NAME           "STM32F756 Very High Performance with DSP and FPU"
-
-#elif defined(STM32F767xx)
-#define PLATFORM_NAME           "STM32F767 Very High Performance with DSP and DP FPU"
-
-#elif defined(STM32F769xx)
-#define PLATFORM_NAME           "STM32F769 Very High Performance with DSP and DP FPU"
 
 #else
 #error "STM32F7xx device not specified"
@@ -270,11 +264,11 @@
 #define STM32_MCO2PRE_DIV4      (6 << 27)   /**< MCO2 divided by 4.         */
 #define STM32_MCO2PRE_DIV5      (7 << 27)   /**< MCO2 divided by 5.         */
 
-#define STM32_MCO2SEL_MASK      (3 << 30)   /**< MCO2 mask.                 */
-#define STM32_MCO2SEL_SYSCLK    (0 << 30)   /**< SYSCLK clock on MCO2 pin.  */
-#define STM32_MCO2SEL_PLLI2S    (1 << 30)   /**< PLLI2S clock on MCO2 pin.  */
-#define STM32_MCO2SEL_HSE       (2 << 30)   /**< HSE clock on MCO2 pin.     */
-#define STM32_MCO2SEL_PLL       (3 << 30)   /**< PLL clock on MCO2 pin.     */
+#define STM32_MCO2SEL_MASK      (3U << 30)  /**< MCO2 mask.                 */
+#define STM32_MCO2SEL_SYSCLK    (0U << 30)  /**< SYSCLK clock on MCO2 pin.  */
+#define STM32_MCO2SEL_PLLI2S    (1U << 30)  /**< PLLI2S clock on MCO2 pin.  */
+#define STM32_MCO2SEL_HSE       (2U << 30)  /**< HSE clock on MCO2 pin.     */
+#define STM32_MCO2SEL_PLL       (3U << 30)  /**< PLL clock on MCO2 pin.     */
 
 /**
  * @name    RCC_PLLI2SCFGR register bits definitions
@@ -950,7 +944,7 @@
 #if STM32_HSE_ENABLED
 
 #if STM32_HSECLK == 0
-#error "HSE frequency not defined"
+  #error "HSE frequency not defined"
 #else /* STM32_HSECLK != 0 */
 #if defined(STM32_HSE_BYPASS)
 #if (STM32_HSECLK < STM32_HSECLK_MIN) || (STM32_HSECLK > STM32_HSECLK_BYP_MAX)
@@ -1902,6 +1896,6 @@ extern "C" {
 }
 #endif
 
-#endif /* HAL_LLD_H */
+#endif /* _HAL_LLD_H_ */
 
 /** @} */

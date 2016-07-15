@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio.
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio.
 
     This file is part of ChibiOS.
 
@@ -25,8 +25,8 @@
  * @{
  */
 
-#ifndef CHSYS_H
-#define CHSYS_H
+#ifndef _CHSYS_H_
+#define _CHSYS_H_
 
 /*lint -sem(chSysHalt, r_no)*/
 
@@ -51,26 +51,6 @@
 /*===========================================================================*/
 /* Derived constants and error checks.                                       */
 /*===========================================================================*/
-
-#if !defined(CH_CFG_IRQ_PROLOGUE_HOOK)
-#error "CH_CFG_IRQ_PROLOGUE_HOOK not defined in chconf.h"
-#endif
-
-#if !defined(CH_CFG_IRQ_EPILOGUE_HOOK)
-#error "CH_CFG_IRQ_EPILOGUE_HOOK not defined in chconf.h"
-#endif
-
-#if !defined(CH_CFG_CONTEXT_SWITCH_HOOK)
-#error "CH_CFG_CONTEXT_SWITCH_HOOK not defined in chconf.h"
-#endif
-
-#if !defined(CH_CFG_SYSTEM_TICK_HOOK)
-#error "CH_CFG_SYSTEM_TICK_HOOK not defined in chconf.h"
-#endif
-
-#if !defined(CH_CFG_SYSTEM_HALT_HOOK)
-#error "CH_CFG_SYSTEM_HALT_HOOK not defined in chconf.h"
-#endif
 
 /*===========================================================================*/
 /* Module data structures and types.                                         */
@@ -128,9 +108,7 @@
  */
 #define CH_IRQ_PROLOGUE()                                                   \
   PORT_IRQ_PROLOGUE();                                                      \
-  CH_CFG_IRQ_PROLOGUE_HOOK();                                               \
   _stats_increase_irq();                                                    \
-  _trace_isr_enter(__func__);                                               \
   _dbg_check_enter_isr()
 
 /**
@@ -143,8 +121,6 @@
  */
 #define CH_IRQ_EPILOGUE()                                                   \
   _dbg_check_leave_isr();                                                   \
-  _trace_isr_leave(__func__);                                               \
-  CH_CFG_IRQ_EPILOGUE_HOOK();                                               \
   PORT_IRQ_EPILOGUE()
 
 /**
@@ -285,7 +261,7 @@
  */
 #define chSysSwitch(ntp, otp) {                                             \
                                                                             \
-  _trace_switch(ntp, otp);                                                  \
+  _dbg_trace(otp);                                                          \
   _stats_ctxswc(ntp, otp);                                                  \
   CH_CFG_CONTEXT_SWITCH_HOOK(ntp, otp);                                     \
   port_switch(ntp, otp);                                                    \
@@ -294,10 +270,6 @@
 /*===========================================================================*/
 /* External declarations.                                                    */
 /*===========================================================================*/
-
-#if !defined(__DOXYGEN__)
-extern stkalign_t ch_idle_thread_wa[];
-#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -308,7 +280,7 @@ extern "C" {
   void chSysTimerHandlerI(void);
   syssts_t chSysGetStatusAndLockX(void);
   void chSysRestoreStatusX(syssts_t sts);
-#if PORT_SUPPORTS_RT == TRUE
+#if PORT_SUPPORTS_RT
   bool chSysIsCounterWithinX(rtcnt_t cnt, rtcnt_t start, rtcnt_t end);
   void chSysPolledDelayX(rtcnt_t cycles);
 #endif
@@ -392,8 +364,8 @@ static inline void chSysUnlock(void) {
      in a critical section not followed by a chSchResceduleS(), this means
      that the current thread has a lower priority than the next thread in
      the ready list.*/
-  chDbgAssert((ch.rlist.queue.next == (thread_t *)&ch.rlist.queue) ||
-              (ch.rlist.current->prio >= ch.rlist.queue.next->prio),
+  chDbgAssert((ch.rlist.r_queue.p_next == (thread_t *)&ch.rlist.r_queue) ||
+              (ch.rlist.r_current->p_prio >= ch.rlist.r_queue.p_next->p_prio),
               "priority order violation");
 
   port_unlock();
@@ -481,10 +453,10 @@ static inline void chSysUnconditionalUnlock(void) {
  */
 static inline thread_t *chSysGetIdleThreadX(void) {
 
-  return ch.rlist.queue.prev;
+  return ch.rlist.r_queue.p_prev;
 }
 #endif /* CH_CFG_NO_IDLE_THREAD == FALSE */
 
-#endif /* CHSYS_H */
+#endif /* _CHSYS_H_ */
 
 /** @} */

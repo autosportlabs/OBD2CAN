@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio.
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio.
 
     This file is part of ChibiOS.
 
@@ -28,8 +28,8 @@
  * @{
  */
 
-#ifndef CH_H
-#define CH_H
+#ifndef _CH_H_
+#define _CH_H_
 
 /**
  * @brief   ChibiOS/RT identification macro.
@@ -39,7 +39,7 @@
 /**
  * @brief   Stable release flag.
  */
-#define CH_KERNEL_STABLE        0
+#define CH_KERNEL_STABLE        1
 
 /**
  * @name    ChibiOS/RT version identification
@@ -48,39 +48,31 @@
 /**
  * @brief   Kernel version string.
  */
-#define CH_KERNEL_VERSION       "4.0.0"
+#define CH_KERNEL_VERSION       "3.1.4"
 
 /**
  * @brief   Kernel version major number.
  */
-#define CH_KERNEL_MAJOR         4
+#define CH_KERNEL_MAJOR         3
 
 /**
  * @brief   Kernel version minor number.
  */
-#define CH_KERNEL_MINOR         0
+#define CH_KERNEL_MINOR         1
 
 /**
  * @brief   Kernel version patch number.
  */
-#define CH_KERNEL_PATCH         0
+#define CH_KERNEL_PATCH         4
 /** @} */
 
 /* Core headers.*/
 #include "chtypes.h"
 #include "chconf.h"
-
-#if !defined(_CHIBIOS_RT_CONF_)
-#error "invalid configuration file"
-#endif
-
 #include "chlicense.h"
-#include "chchecks.h"
 #include "chsystypes.h"
-#include "chalign.h"
 #include "chcore.h"
 #include "chdebug.h"
-#include "chtrace.h"
 #include "chtm.h"
 #include "chstats.h"
 #include "chschd.h"
@@ -101,11 +93,9 @@
 #include "chheap.h"
 #include "chmempools.h"
 #include "chdynamic.h"
+#include "chqueues.h"
+#include "chstreams.h"
 
-#if !defined(_CHIBIOS_RT_CONF_)
-#error "missing or wrong configuration file"
-#endif
-
-#endif /* CH_H */
+#endif /* _CH_H_ */
 
 /** @} */

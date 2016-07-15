@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio.
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio.
 
     This file is part of ChibiOS.
 
@@ -19,7 +19,7 @@
 
 /**
  * @file    chdebug.c
- * @brief   Debug support code.
+ * @brief   ChibiOS/RT Debug code.
  *
  * @addtogroup debug
  * @details Debug APIs and services:
@@ -255,5 +255,36 @@ void chDbgCheckClassS(void) {
 }
 
 #endif /* CH_DBG_SYSTEM_STATE_CHECK == TRUE */
+
+#if (CH_DBG_ENABLE_TRACE == TRUE) || defined(__DOXYGEN__)
+/**
+ * @brief   Trace circular buffer subsystem initialization.
+ * @note    Internal use only.
+ */
+void _dbg_trace_init(void) {
+
+  ch.dbg.trace_buffer.tb_size = CH_DBG_TRACE_BUFFER_SIZE;
+  ch.dbg.trace_buffer.tb_ptr = &ch.dbg.trace_buffer.tb_buffer[0];
+}
+
+/**
+ * @brief   Inserts in the circular debug trace buffer a context switch record.
+ *
+ * @param[in] otp       the thread being switched out
+ *
+ * @notapi
+ */
+void _dbg_trace(thread_t *otp) {
+
+  ch.dbg.trace_buffer.tb_ptr->se_time   = chVTGetSystemTimeX();
+  ch.dbg.trace_buffer.tb_ptr->se_tp     = currp;
+  ch.dbg.trace_buffer.tb_ptr->se_wtobjp = otp->p_u.wtobjp;
+  ch.dbg.trace_buffer.tb_ptr->se_state  = (uint8_t)otp->p_state;
+  if (++ch.dbg.trace_buffer.tb_ptr >=
+      &ch.dbg.trace_buffer.tb_buffer[CH_DBG_TRACE_BUFFER_SIZE]) {
+    ch.dbg.trace_buffer.tb_ptr = &ch.dbg.trace_buffer.tb_buffer[0];
+  }
+}
+#endif /* CH_DBG_ENABLE_TRACE */
 
 /** @} */

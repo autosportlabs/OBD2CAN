@@ -438,7 +438,7 @@
       <pin9
         ID="OTG_FS_PSON"
         Type="PushPull"
-        Level="High"
+        Level="Low"
         Speed="Maximum"
         Resistor="Floating"
         Mode="Output"

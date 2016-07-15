@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio.
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio.
 
     This file is part of ChibiOS.
 
@@ -25,8 +25,8 @@
  * @{
  */
 
-#ifndef CHVT_H
-#define CHVT_H
+#ifndef _CHVT_H_
+#define _CHVT_H_
 
 /*===========================================================================*/
 /* Module constants.                                                         */
@@ -209,7 +209,7 @@ extern "C" {
  */
 static inline void chVTObjectInit(virtual_timer_t *vtp) {
 
-  vtp->func = NULL;
+  vtp->vt_func = NULL;
 }
 
 /**
@@ -228,7 +228,7 @@ static inline void chVTObjectInit(virtual_timer_t *vtp) {
 static inline systime_t chVTGetSystemTimeX(void) {
 
 #if CH_CFG_ST_TIMEDELTA == 0
-  return ch.vtlist.systime;
+  return ch.vtlist.vt_systime;
 #else /* CH_CFG_ST_TIMEDELTA > 0 */
   return port_timer_get_time();
 #endif /* CH_CFG_ST_TIMEDELTA > 0 */
@@ -344,15 +344,15 @@ static inline bool chVTGetTimersStateI(systime_t *timep) {
 
   chDbgCheckClassI();
 
-  if (&ch.vtlist == (virtual_timers_list_t *)ch.vtlist.next) {
+  if (&ch.vtlist == (virtual_timers_list_t *)ch.vtlist.vt_next) {
     return false;
   }
 
   if (timep != NULL) {
 #if CH_CFG_ST_TIMEDELTA == 0
-    *timep = ch.vtlist.next->delta;
+    *timep = ch.vtlist.vt_next->vt_delta;
 #else
-    *timep = ch.vtlist.lasttime + ch.vtlist.next->delta +
+    *timep = ch.vtlist.vt_lasttime + ch.vtlist.vt_next->vt_delta +
              CH_CFG_ST_TIMEDELTA - chVTGetSystemTimeX();
 #endif
   }
@@ -374,7 +374,7 @@ static inline bool chVTIsArmedI(virtual_timer_t *vtp) {
 
   chDbgCheckClassI();
 
-  return (bool)(vtp->func != NULL);
+  return (bool)(vtp->vt_func != NULL);
 }
 
 /**
@@ -504,21 +504,21 @@ static inline void chVTDoTickI(void) {
   chDbgCheckClassI();
 
 #if CH_CFG_ST_TIMEDELTA == 0
-  ch.vtlist.systime++;
-  if (&ch.vtlist != (virtual_timers_list_t *)ch.vtlist.next) {
+  ch.vtlist.vt_systime++;
+  if (&ch.vtlist != (virtual_timers_list_t *)ch.vtlist.vt_next) {
     /* The list is not empty, processing elements on top.*/
-    --ch.vtlist.next->delta;
-    while (ch.vtlist.next->delta == (systime_t)0) {
+    --ch.vtlist.vt_next->vt_delta;
+    while (ch.vtlist.vt_next->vt_delta == (systime_t)0) {
       virtual_timer_t *vtp;
       vtfunc_t fn;
 
-      vtp = ch.vtlist.next;
-      fn = vtp->func;
-      vtp->func = NULL;
-      vtp->next->prev = (virtual_timer_t *)&ch.vtlist;
-      ch.vtlist.next = vtp->next;
+      vtp = ch.vtlist.vt_next;
+      fn = vtp->vt_func;
+      vtp->vt_func = NULL;
+      vtp->vt_next->vt_prev = (virtual_timer_t *)&ch.vtlist;
+      ch.vtlist.vt_next = vtp->vt_next;
       chSysUnlockFromISR();
-      fn(vtp->par);
+      fn(vtp->vt_par);
       chSysLockFromISR();
     }
   }
@@ -527,26 +527,26 @@ static inline void chVTDoTickI(void) {
   systime_t now, delta;
 
   /* First timer to be processed.*/
-  vtp = ch.vtlist.next;
+  vtp = ch.vtlist.vt_next;
   now = chVTGetSystemTimeX();
 
   /* All timers within the time window are triggered and removed,
      note that the loop is stopped by the timers header having
      "ch.vtlist.vt_delta == (systime_t)-1" which is greater than
      all deltas.*/
-  while (vtp->delta <= (systime_t)(now - ch.vtlist.lasttime)) {
+  while (vtp->vt_delta <= (systime_t)(now - ch.vtlist.vt_lasttime)) {
     vtfunc_t fn;
 
     /* The "last time" becomes this timer's expiration time.*/
-    ch.vtlist.lasttime += vtp->delta;
+    ch.vtlist.vt_lasttime += vtp->vt_delta;
 
-    vtp->next->prev = (virtual_timer_t *)&ch.vtlist;
-    ch.vtlist.next = vtp->next;
-    fn = vtp->func;
-    vtp->func = NULL;
+    vtp->vt_next->vt_prev = (virtual_timer_t *)&ch.vtlist;
+    ch.vtlist.vt_next = vtp->vt_next;
+    fn = vtp->vt_func;
+    vtp->vt_func = NULL;
 
     /* if the list becomes empty then the timer is stopped.*/
-    if (ch.vtlist.next == (virtual_timer_t *)&ch.vtlist) {
+    if (ch.vtlist.vt_next == (virtual_timer_t *)&ch.vtlist) {
       port_timer_stop_alarm();
     }
 
@@ -556,7 +556,7 @@ static inline void chVTDoTickI(void) {
     chSysUnlockFromISR();
 
     /* The callback is invoked outside the kernel critical zone.*/
-    fn(vtp->par);
+    fn(vtp->vt_par);
 
     /* Re-entering the critical zone in order to continue the exploration
        of the list.*/
@@ -564,28 +564,28 @@ static inline void chVTDoTickI(void) {
 
     /* Next element in the list, the current time could have advanced so
        recalculating the time window.*/
-    vtp = ch.vtlist.next;
+    vtp = ch.vtlist.vt_next;
     now = chVTGetSystemTimeX();
   }
 
   /* if the list is empty, nothing else to do.*/
-  if (ch.vtlist.next == (virtual_timer_t *)&ch.vtlist) {
+  if (ch.vtlist.vt_next == (virtual_timer_t *)&ch.vtlist) {
     return;
   }
 
   /* Recalculating the next alarm time.*/
-  delta = ch.vtlist.lasttime + vtp->delta - now;
+  delta = ch.vtlist.vt_lasttime + vtp->vt_delta - now;
   if (delta < (systime_t)CH_CFG_ST_TIMEDELTA) {
     delta = (systime_t)CH_CFG_ST_TIMEDELTA;
   }
   port_timer_set_alarm(now + delta);
 
-  chDbgAssert((chVTGetSystemTimeX() - ch.vtlist.lasttime) <=
-              (now + delta - ch.vtlist.lasttime),
+  chDbgAssert((chVTGetSystemTimeX() - ch.vtlist.vt_lasttime) <=
+              (now + delta - ch.vtlist.vt_lasttime),
               "exceeding delta");
 #endif /* CH_CFG_ST_TIMEDELTA > 0 */
 }
 
-#endif /* CHVT_H */
+#endif /* _CHVT_H_ */
 
 /** @} */

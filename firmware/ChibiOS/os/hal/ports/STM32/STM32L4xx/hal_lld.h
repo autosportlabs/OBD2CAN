@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@
  * @{
  */
 
-#ifndef HAL_LLD_H
-#define HAL_LLD_H
+#ifndef _HAL_LLD_H_
+#define _HAL_LLD_H_
 
 #include "stm32_registry.h"
 
@@ -2056,6 +2056,6 @@ extern "C" {
 }
 #endif
 
-#endif /* HAL_LLD_H */
+#endif /* _HAL_LLD_H_ */
 
 /** @} */

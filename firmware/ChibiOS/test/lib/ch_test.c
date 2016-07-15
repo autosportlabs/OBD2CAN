@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -39,11 +39,6 @@
  */
 unsigned test_step;
 
-/**
- * @brief   Test result flag.
- */
-bool test_global_fail;
-
 /*===========================================================================*/
 /* Module local types.                                                       */
 /*===========================================================================*/
@@ -53,6 +48,7 @@ bool test_global_fail;
 /*===========================================================================*/
 
 static bool test_local_fail;
+static bool test_global_fail;
 static const char *test_failure_message;
 static char test_tokens_buffer[TEST_MAX_TOKENS];
 static char *test_tokp;
@@ -78,7 +74,7 @@ static void execute_test(const testcase_t *tcp) {
 
   /* Initialization */
   clear_tokens();
-  test_local_fail = false;
+  test_local_fail = FALSE;
 
   if (tcp->setup != NULL)
     tcp->setup();
@@ -101,17 +97,17 @@ static void print_line(void) {
 
 bool _test_fail(const char *msg) {
 
-  test_local_fail      = true;
-  test_global_fail     = true;
+  test_local_fail = TRUE;
+  test_global_fail = TRUE;
   test_failure_message = msg;
-  return true;
+  return TRUE;
 }
 
 bool _test_assert(bool condition, const char *msg) {
 
   if (!condition)
     return _test_fail(msg);
-  return false;
+  return FALSE;
 }
 
 bool _test_assert_sequence(char *expected, const char *msg) {
@@ -127,7 +123,7 @@ bool _test_assert_sequence(char *expected, const char *msg) {
 
   clear_tokens();
 
-  return false;
+  return FALSE;
 }
 
 bool _test_assert_time_window(systime_t start,
@@ -219,8 +215,8 @@ void test_emit_token_i(char token) {
  * @param[in] stream    pointer to a @p BaseSequentialStream object for test
  *                      output
  * @return              A failure boolean value casted to @p msg_t.
- * @retval false        if no errors occurred.
- * @retval true         if one or more tests failed.
+ * @retval FALSE        if no errors occurred.
+ * @retval TRUE         if one or more tests failed.
  *
  * @api
  */
@@ -237,20 +233,17 @@ msg_t test_execute(BaseSequentialStream *stream) {
   test_println("***");
   test_print("*** Compiled:     ");
   test_println(__DATE__ " - " __TIME__);
-#if defined(PLATFORM_NAME)
+#ifdef PLATFORM_NAME
   test_print("*** Platform:     ");
   test_println(PLATFORM_NAME);
 #endif
-#if defined(BOARD_NAME)
+#ifdef BOARD_NAME
   test_print("*** Test Board:   ");
   test_println(BOARD_NAME);
 #endif
-#if defined(TEST_REPORT_HOOK_HEADER)
-  TEST_REPORT_HOOK_HEADER
-#endif
   test_println("");
 
-  test_global_fail = false;
+  test_global_fail = FALSE;
   i = 0;
   while (test_suite[i]) {
     j = 0;
@@ -289,10 +282,6 @@ msg_t test_execute(BaseSequentialStream *stream) {
     test_println("FAILURE");
   else
     test_println("SUCCESS");
-
-#if defined(TEST_REPORT_HOOK_END)
-  TEST_REPORT_HOOK_END
-#endif
 
   return (msg_t)test_global_fail;
 }

@@ -23,14 +23,14 @@
 #define BOARD_H
 
 /*
- * Setup for STMicroelectronics STM32 Nucleo32-F031K6 board.
+ * Setup for STMicroelectronics NUCLEO32-F031K6 board.
  */
 
 /*
  * Board identifier.
  */
 #define BOARD_ST_NUCLEO32_F031K6
-#define BOARD_NAME                  "STMicroelectronics STM32 Nucleo32-F031K6"
+#define BOARD_NAME                  "STMicroelectronics NUCLEO32-F031K6"
 
 /*
  * Board oscillators-related settings.
@@ -342,7 +342,7 @@
  * PB0  - ARD_D3                    (input pullup).
  * PB1  - ARD_D6                    (input pullup).
  * PB2  - PIN2                      (input pullup).
- * PB3  - ARD_D13 LED_GREEN         (output pushpull maximum).
+ * PB3  - ARD_D13 LED_GREEN         (input pullup).
  * PB4  - ARD_D12                   (input pullup).
  * PB5  - ARD_D11                   (input pullup).
  * PB6  - ARD_D5 ARD_A5_ALT         (input pullup).
@@ -359,7 +359,7 @@
 #define VAL_GPIOB_MODER             (PIN_MODE_INPUT(GPIOB_ARD_D3) |         \
                                      PIN_MODE_INPUT(GPIOB_ARD_D6) |         \
                                      PIN_MODE_INPUT(GPIOB_PIN2) |           \
-                                     PIN_MODE_OUTPUT(GPIOB_ARD_D13) |       \
+                                     PIN_MODE_INPUT(GPIOB_ARD_D13) |        \
                                      PIN_MODE_INPUT(GPIOB_ARD_D12) |        \
                                      PIN_MODE_INPUT(GPIOB_ARD_D11) |        \
                                      PIN_MODE_INPUT(GPIOB_ARD_D5) |         \
@@ -407,7 +407,7 @@
 #define VAL_GPIOB_PUPDR             (PIN_PUPDR_PULLUP(GPIOB_ARD_D3) |       \
                                      PIN_PUPDR_PULLUP(GPIOB_ARD_D6) |       \
                                      PIN_PUPDR_PULLUP(GPIOB_PIN2) |         \
-                                     PIN_PUPDR_FLOATING(GPIOB_ARD_D13) |    \
+                                     PIN_PUPDR_PULLUP(GPIOB_ARD_D13) |      \
                                      PIN_PUPDR_PULLUP(GPIOB_ARD_D12) |      \
                                      PIN_PUPDR_PULLUP(GPIOB_ARD_D11) |      \
                                      PIN_PUPDR_PULLUP(GPIOB_ARD_D5) |       \
@@ -423,7 +423,7 @@
 #define VAL_GPIOB_ODR               (PIN_ODR_HIGH(GPIOB_ARD_D3) |           \
                                      PIN_ODR_HIGH(GPIOB_ARD_D6) |           \
                                      PIN_ODR_HIGH(GPIOB_PIN2) |             \
-                                     PIN_ODR_LOW(GPIOB_ARD_D13) |           \
+                                     PIN_ODR_HIGH(GPIOB_ARD_D13) |          \
                                      PIN_ODR_HIGH(GPIOB_ARD_D12) |          \
                                      PIN_ODR_HIGH(GPIOB_ARD_D11) |          \
                                      PIN_ODR_HIGH(GPIOB_ARD_D5) |           \

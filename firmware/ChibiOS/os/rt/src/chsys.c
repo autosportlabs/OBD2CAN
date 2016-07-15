@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio.
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio.
 
     This file is part of ChibiOS.
 
@@ -38,13 +38,6 @@
 /*===========================================================================*/
 /* Module exported variables.                                                */
 /*===========================================================================*/
-
-#if (CH_CFG_NO_IDLE_THREAD == FALSE) || defined(__DOXYGEN__)
-/**
- * @brief   Idle thread working area.
- */
-THD_WORKING_AREA(ch_idle_thread_wa, PORT_IDLE_THREAD_STACK_SIZE);
-#endif
 
 /*===========================================================================*/
 /* Module local types.                                                       */
@@ -98,15 +91,13 @@ static void _idle_thread(void *p) {
  * @special
  */
 void chSysInit(void) {
+#if CH_DBG_ENABLE_STACK_CHECK == TRUE
+  extern stkalign_t __main_thread_stack_base__;
+#endif
 
+  port_init();
   _scheduler_init();
   _vt_init();
-  _trace_init();
-
-#if CH_DBG_SYSTEM_STATE_CHECK == TRUE
-  ch.dbg.isr_cnt  = (cnt_t)0;
-  ch.dbg.lock_cnt = (cnt_t)0;
-#endif
 #if CH_CFG_USE_TM == TRUE
   _tm_init();
 #endif
@@ -119,60 +110,49 @@ void chSysInit(void) {
 #if CH_DBG_STATISTICS == TRUE
   _stats_init();
 #endif
+#if CH_DBG_ENABLE_TRACE == TRUE
+  _dbg_trace_init();
+#endif
 
 #if CH_CFG_NO_IDLE_THREAD == FALSE
   /* Now this instructions flow becomes the main thread.*/
-#if CH_CFG_USE_REGISTRY == TRUE
-  currp = _thread_init(&ch.mainthread, (const char *)&ch_debug, NORMALPRIO);
-#else
-  currp = _thread_init(&ch.mainthread, "main", NORMALPRIO);
-#endif
+  setcurrp(_thread_init(&ch.mainthread, NORMALPRIO));
 #else
   /* Now this instructions flow becomes the idle thread.*/
-  currp = _thread_init(&ch.mainthread, "idle", IDLEPRIO);
+  setcurrp(_thread_init(&ch.mainthread, IDLEPRIO));
 #endif
 
+  currp->p_state = CH_STATE_CURRENT;
 #if CH_DBG_ENABLE_STACK_CHECK == TRUE
-  {
-    /* Setting up the base address of the static main thread stack, the
-       symbol must be provided externally.*/
-    extern stkalign_t __main_thread_stack_base__;
-    currp->wabase = &__main_thread_stack_base__;
-  }
-#elif CH_CFG_USE_DYNAMIC == TRUE
-  currp->wabase = NULL;
+  /* This is a special case because the main thread thread_t structure is not
+     adjacent to its stack area.*/
+  currp->p_stklimit = &__main_thread_stack_base__;
 #endif
-
-  /* Setting up the caller as current thread.*/
-  currp->state = CH_STATE_CURRENT;
-
-  /* Port layer initialization last because it depend on some of the
-     initializations performed before.*/
-  port_init();
 
 #if CH_DBG_STATISTICS == TRUE
   /* Starting measurement for this thread.*/
-  chTMStartMeasurementX(&currp->stats);
+  chTMStartMeasurementX(&currp->p_stats);
 #endif
 
-  /* It is alive now.*/
   chSysEnable();
+
+#if CH_CFG_USE_REGISTRY == TRUE
+  /* Note, &ch_debug points to the string "main" if the registry is
+     active.*/
+  chRegSetThreadName((const char *)&ch_debug);
+#endif
 
 #if CH_CFG_NO_IDLE_THREAD == FALSE
   {
-    static const thread_descriptor_t idle_descriptor = {
-      "idle",
-      THD_WORKING_AREA_BASE(ch_idle_thread_wa),
-      THD_WORKING_AREA_END(ch_idle_thread_wa),
-      IDLEPRIO,
-      _idle_thread,
-      NULL
-    };
-
-    /* This thread has the lowest priority in the system, its role is just to
-       serve interrupts in its context while keeping the lowest energy saving
-       mode compatible with the system status.*/
-    (void) chThdCreate(&idle_descriptor);
+  /* This thread has the lowest priority in the system, its role is just to
+     serve interrupts in its context while keeping the lowest energy saving
+     mode compatible with the system status.*/
+    thread_t *tp =  chThdCreateStatic(ch.idle_thread_wa,
+                                      sizeof(ch.idle_thread_wa),
+                                      IDLEPRIO,
+                                      (tfunc_t)_idle_thread,
+                                      NULL);
+    chRegSetThreadNameX(tp, "idle");
   }
 #endif
 }
@@ -193,11 +173,9 @@ void chSysHalt(const char *reason) {
 
   port_disable();
 
-  /* Halt hook code, usually empty.*/
+#if defined(CH_CFG_SYSTEM_HALT_HOOK) || defined(__DOXYGEN__)
   CH_CFG_SYSTEM_HALT_HOOK(reason);
-
-  /* Logging the event.*/
-  _trace_halt(reason);
+#endif
 
   /* Pointing to the passed message.*/
   ch.dbg.panic_msg = reason;
@@ -242,17 +220,17 @@ bool chSysIntegrityCheckI(unsigned testmask) {
 
     /* Scanning the ready list forward.*/
     n = (cnt_t)0;
-    tp = ch.rlist.queue.next;
-    while (tp != (thread_t *)&ch.rlist.queue) {
+    tp = ch.rlist.r_queue.p_next;
+    while (tp != (thread_t *)&ch.rlist.r_queue) {
       n++;
-      tp = tp->queue.next;
+      tp = tp->p_next;
     }
 
     /* Scanning the ready list backward.*/
-    tp = ch.rlist.queue.prev;
-    while (tp != (thread_t *)&ch.rlist.queue) {
+    tp = ch.rlist.r_queue.p_prev;
+    while (tp != (thread_t *)&ch.rlist.r_queue) {
       n--;
-      tp = tp->queue.prev;
+      tp = tp->p_prev;
     }
 
     /* The number of elements must match.*/
@@ -267,17 +245,17 @@ bool chSysIntegrityCheckI(unsigned testmask) {
 
     /* Scanning the timers list forward.*/
     n = (cnt_t)0;
-    vtp = ch.vtlist.next;
+    vtp = ch.vtlist.vt_next;
     while (vtp != (virtual_timer_t *)&ch.vtlist) {
       n++;
-      vtp = vtp->next;
+      vtp = vtp->vt_next;
     }
 
     /* Scanning the timers list backward.*/
-    vtp = ch.vtlist.prev;
+    vtp = ch.vtlist.vt_prev;
     while (vtp != (virtual_timer_t *)&ch.vtlist) {
       n--;
-      vtp = vtp->prev;
+      vtp = vtp->vt_prev;
     }
 
     /* The number of elements must match.*/
@@ -292,17 +270,17 @@ bool chSysIntegrityCheckI(unsigned testmask) {
 
     /* Scanning the ready list forward.*/
     n = (cnt_t)0;
-    tp = ch.rlist.newer;
+    tp = ch.rlist.r_newer;
     while (tp != (thread_t *)&ch.rlist) {
       n++;
-      tp = tp->newer;
+      tp = tp->p_newer;
     }
 
     /* Scanning the ready list backward.*/
-    tp = ch.rlist.older;
+    tp = ch.rlist.r_older;
     while (tp != (thread_t *)&ch.rlist) {
       n--;
-      tp = tp->older;
+      tp = tp->p_older;
     }
 
     /* The number of elements must match.*/
@@ -338,16 +316,18 @@ void chSysTimerHandlerI(void) {
 
 #if CH_CFG_TIME_QUANTUM > 0
   /* Running thread has not used up quantum yet? */
-  if (currp->preempt > (tslices_t)0) {
+  if (currp->p_preempt > (tslices_t)0) {
     /* Decrement remaining quantum.*/
-    currp->preempt--;
+    currp->p_preempt--;
   }
 #endif
 #if CH_DBG_THREADS_PROFILING == TRUE
-  currp->time++;
+  currp->p_time++;
 #endif
   chVTDoTickI();
+#if defined(CH_CFG_SYSTEM_TICK_HOOK)
   CH_CFG_SYSTEM_TICK_HOOK();
+#endif
 }
 
 /**

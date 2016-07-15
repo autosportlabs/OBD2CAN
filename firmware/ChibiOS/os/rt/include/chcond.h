@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio.
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio.
 
     This file is part of ChibiOS.
 
@@ -28,8 +28,8 @@
  * @{
  */
 
-#ifndef CHCOND_H
-#define CHCOND_H
+#ifndef _CHCOND_H_
+#define _CHCOND_H_
 
 #if (CH_CFG_USE_CONDVARS == TRUE) || defined(__DOXYGEN__)
 
@@ -57,7 +57,7 @@
  * @brief   condition_variable_t structure.
  */
 typedef struct condition_variable {
-  threads_queue_t       queue;              /**< @brief Condition variable
+  threads_queue_t       c_queue;            /**< @brief Condition variable
                                                  threads queue.             */
 } condition_variable_t;
 
@@ -72,7 +72,7 @@ typedef struct condition_variable {
  *
  * @param[in] name      the name of the condition variable
  */
-#define _CONDVAR_DATA(name) {_THREADS_QUEUE_DATA(name.queue)}
+#define _CONDVAR_DATA(name) {_THREADS_QUEUE_DATA(name.c_queue)}
 
 /**
  * @brief Static condition variable initializer.
@@ -111,6 +111,6 @@ extern "C" {
 
 #endif /* CH_CFG_USE_CONDVARS == TRUE */
 
-#endif /* CHCOND_H */
+#endif /* _CHCOND_H_ */
 
 /** @} */

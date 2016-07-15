@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio.
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio.
 
     This file is part of ChibiOS.
 
@@ -44,9 +44,6 @@
  *          option must be enabled in @p chconf.h.
  * @{
  */
-
-#include <string.h>
-
 #include "ch.h"
 
 #if (CH_CFG_USE_REGISTRY == TRUE) || defined(__DOXYGEN__)
@@ -90,30 +87,30 @@ ROMCONST chdebug_t ch_debug = {
   (uint8_t)sizeof (void *),
   (uint8_t)sizeof (systime_t),
   (uint8_t)sizeof (thread_t),
-  (uint8_t)_offsetof(thread_t, prio),
-  (uint8_t)_offsetof(thread_t, ctx),
-  (uint8_t)_offsetof(thread_t, newer),
-  (uint8_t)_offsetof(thread_t, older),
-  (uint8_t)_offsetof(thread_t, name),
-#if (CH_DBG_ENABLE_STACK_CHECK == TRUE) || (CH_CFG_USE_DYNAMIC == TRUE)
-  (uint8_t)_offsetof(thread_t, wabase),
+  (uint8_t)_offsetof(thread_t, p_prio),
+  (uint8_t)_offsetof(thread_t, p_ctx),
+  (uint8_t)_offsetof(thread_t, p_newer),
+  (uint8_t)_offsetof(thread_t, p_older),
+  (uint8_t)_offsetof(thread_t, p_name),
+#if CH_DBG_ENABLE_STACK_CHECK == TRUE
+  (uint8_t)_offsetof(thread_t, p_stklimit),
 #else
   (uint8_t)0,
 #endif
-  (uint8_t)_offsetof(thread_t, state),
-  (uint8_t)_offsetof(thread_t, flags),
+  (uint8_t)_offsetof(thread_t, p_state),
+  (uint8_t)_offsetof(thread_t, p_flags),
 #if CH_CFG_USE_DYNAMIC == TRUE
-  (uint8_t)_offsetof(thread_t, refs),
+  (uint8_t)_offsetof(thread_t, p_refs),
 #else
   (uint8_t)0,
 #endif
 #if CH_CFG_TIME_QUANTUM > 0
-  (uint8_t)_offsetof(thread_t, preempt),
+  (uint8_t)_offsetof(thread_t, p_preempt),
 #else
   (uint8_t)0,
 #endif
 #if CH_DBG_THREADS_PROFILING == TRUE
-  (uint8_t)_offsetof(thread_t, time)
+  (uint8_t)_offsetof(thread_t, p_time)
 #else
   (uint8_t)0
 #endif
@@ -135,9 +132,9 @@ thread_t *chRegFirstThread(void) {
   thread_t *tp;
 
   chSysLock();
-  tp = ch.rlist.newer;
+  tp = ch.rlist.r_newer;
 #if CH_CFG_USE_DYNAMIC == TRUE
-  tp->refs++;
+  tp->p_refs++;
 #endif
   chSysUnlock();
 
@@ -159,7 +156,7 @@ thread_t *chRegNextThread(thread_t *tp) {
   thread_t *ntp;
 
   chSysLock();
-  ntp = tp->newer;
+  ntp = tp->p_newer;
   /*lint -save -e9087 -e740 [11.3, 1.3] Cast required by list handling.*/
   if (ntp == (thread_t *)&ch.rlist) {
   /*lint -restore*/
@@ -167,8 +164,8 @@ thread_t *chRegNextThread(thread_t *tp) {
   }
 #if CH_CFG_USE_DYNAMIC == TRUE
   else {
-    chDbgAssert(ntp->refs < (trefs_t)255, "too many references");
-    ntp->refs++;
+    chDbgAssert(ntp->p_refs < (trefs_t)255, "too many references");
+    ntp->p_refs++;
   }
 #endif
   chSysUnlock();
@@ -178,90 +175,6 @@ thread_t *chRegNextThread(thread_t *tp) {
 
   return ntp;
 }
-
-/**
- * @brief   Retrieves a thread pointer by name.
- * @note    The reference counter of the found thread is increased by one so
- *          it cannot be disposed incidentally after the pointer has been
- *          returned.
- *
- * @param[in] name      the thread name
- * @return              A pointer to the found thread.
- * @retval NULL         if a matching thread has not been found.
- *
- * @api
- */
-thread_t *chRegFindThreadByName(const char *name) {
-  thread_t *ctp;
-
-  /* Scanning registry.*/
-  ctp = chRegFirstThread();
-  do {
-    if (strcmp(chRegGetThreadNameX(ctp), name) == 0) {
-      return ctp;
-    }
-    ctp = chRegNextThread(ctp);
-  } while (ctp != NULL);
-
-  return NULL;
-}
-
-/**
- * @brief   Confirms that a pointer is a valid thread pointer.
- * @note    The reference counter of the found thread is increased by one so
- *          it cannot be disposed incidentally after the pointer has been
- *          returned.
- *
- * @param[in] tp        pointer to the thread
- * @return              A pointer to the found thread.
- * @retval NULL         if a matching thread has not been found.
- *
- * @api
- */
-thread_t *chRegFindThreadByPointer(thread_t *tp) {
-  thread_t *ctp;
-
-  /* Scanning registry.*/
-  ctp = chRegFirstThread();
-  do {
-    if (ctp == tp) {
-      return ctp;
-    }
-    ctp = chRegNextThread(ctp);
-  } while (ctp != NULL);
-
-  return NULL;
-}
-
-#if (CH_DBG_ENABLE_STACK_CHECK == TRUE) || (CH_CFG_USE_DYNAMIC == TRUE) ||  \
-    defined(__DOXYGEN__)
-/**
- * @brief   Confirms that a working area is being used by some active thread.
- * @note    The reference counter of the found thread is increased by one so
- *          it cannot be disposed incidentally after the pointer has been
- *          returned.
- *
- * @param[in] wa        pointer to a static working area
- * @return              A pointer to the found thread.
- * @retval NULL         if a matching thread has not been found.
- *
- * @api
- */
-thread_t *chRegFindThreadByWorkingArea(stkalign_t *wa) {
-  thread_t *ctp;
-
-  /* Scanning registry.*/
-  ctp = chRegFirstThread();
-  do {
-    if (chThdGetWorkingAreaX(ctp) == wa) {
-      return ctp;
-    }
-    ctp = chRegNextThread(ctp);
-  } while (ctp != NULL);
-
-  return NULL;
-}
-#endif
 
 #endif /* CH_CFG_USE_REGISTRY == TRUE */
 

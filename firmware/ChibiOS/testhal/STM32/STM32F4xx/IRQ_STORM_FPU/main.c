@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -171,29 +171,29 @@ CH_FAST_IRQ_HANDLER(Vector184) {
 static void print(char *p) {
 
   while (*p) {
-    streamPut(&SD2, *p++);
+    chSequentialStreamPut(&SD2, *p++);
   }
 }
 
 static void println(char *p) {
 
   while (*p) {
-    streamPut(&SD2, *p++);
+    chSequentialStreamPut(&SD2, *p++);
   }
-  streamWrite(&SD2, (uint8_t *)"\r\n", 2);
+  chSequentialStreamWrite(&SD2, (uint8_t *)"\r\n", 2);
 }
 
 static void printn(uint32_t n) {
   char buf[16], *p;
 
   if (!n)
-    streamPut(&SD2, '0');
+    chSequentialStreamPut(&SD2, '0');
   else {
     p = buf;
     while (n)
       *p++ = (n % 10) + '0', n /= 10;
     while (p > buf)
-      streamPut(&SD2, *--p);
+      chSequentialStreamPut(&SD2, *--p);
   }
 }
 

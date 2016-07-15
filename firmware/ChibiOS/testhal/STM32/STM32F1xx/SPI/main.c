@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ static const SPIConfig hs_spicfg = {
   NULL,
   GPIOA,
   GPIOA_SPI1NSS,
-  0,
   0
 };
 
@@ -35,8 +34,7 @@ static const SPIConfig ls_spicfg = {
   NULL,
   GPIOA,
   GPIOA_SPI1NSS,
-  SPI_CR1_BR_2 | SPI_CR1_BR_1,
-  0
+  SPI_CR1_BR_2 | SPI_CR1_BR_1
 };
 
 /*

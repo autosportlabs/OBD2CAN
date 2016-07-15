@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@
  * @{
  */
 
-#ifndef CHPRINTF_H
-#define CHPRINTF_H
+#ifndef _CHPRINTF_H_
+#define _CHPRINTF_H_
 
 #include <stdarg.h>
 
@@ -44,6 +44,6 @@ extern "C" {
 }
 #endif
 
-#endif /* CHPRINTF_H */
+#endif /* _CHPRINTF_H_ */
 
 /** @} */

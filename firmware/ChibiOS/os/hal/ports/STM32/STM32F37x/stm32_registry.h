@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@
  * @{
  */
 
-#ifndef STM32_REGISTRY_H
-#define STM32_REGISTRY_H
+#ifndef _STM32_REGISTRY_H_
+#define _STM32_REGISTRY_H_
 
 /*===========================================================================*/
 /* Platform capabilities.                                                    */
@@ -133,9 +133,6 @@
 
 #define STM32_HAS_I2C3                      FALSE
 #define STM32_HAS_I2C4                      FALSE
-
-/* QUADSPI attributes.*/
-#define STM32_HAS_QUADSPI1                  FALSE
 
 /* RTC attributes.*/
 #define STM32_HAS_RTC                       TRUE
@@ -385,9 +382,6 @@
 #define STM32_HAS_I2C3                      FALSE
 #define STM32_HAS_I2C4                      FALSE
 
-/* QUADSPI attributes.*/
-#define STM32_HAS_QUADSPI1                  FALSE
-
 /* RTC attributes.*/
 #define STM32_HAS_RTC                       TRUE
 #define STM32_RTC_HAS_SUBSECONDS            TRUE
@@ -535,6 +529,6 @@
 #endif /* defined(STM32F378xx) */
 /** @} */
 
-#endif /* STM32_REGISTRY_H */
+#endif /* _STM32_REGISTRY_H_ */
 
 /** @} */

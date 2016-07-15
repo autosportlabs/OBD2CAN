@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -15,15 +15,15 @@
 */
 
 /**
- * @file    STM32L4xx/stm32_registry.h
- * @brief   STM32L4xx capabilities registry.
+ * @file    STM32L0xx/stm32_registry.h
+ * @brief   STM32L0xx capabilities registry.
  *
  * @addtogroup HAL
  * @{
  */
 
-#ifndef STM32_REGISTRY_H
-#define STM32_REGISTRY_H
+#ifndef _STM32_REGISTRY_H_
+#define _STM32_REGISTRY_H_
 
 /*===========================================================================*/
 /* Platform capabilities.                                                    */
@@ -209,14 +209,6 @@
 
 #define STM32_HAS_I2C4                      FALSE
 
-/* QUADSPI attributes.*/
-#define STM32_HAS_QUADSPI1                  TRUE
-#define STM32_QUADSPI1_HANDLER              Vector15C
-#define STM32_QUADSPI1_NUMBER               71
-#define STM32_QUADSPI1_DMA_MSK              (STM32_DMA_STREAM_ID_MSK(1, 5) |\
-                                             STM32_DMA_STREAM_ID_MSK(2, 7))
-#define STM32_QUADSPI1_DMA_CHN              0x03050000
-
 /* RTC attributes.*/
 #define STM32_HAS_RTC                       TRUE
 #define STM32_RTC_HAS_SUBSECONDS            TRUE
@@ -397,13 +389,12 @@
 #define STM32_HAS_UART8                     FALSE
 
 /* USB attributes.*/
-#define STM32_OTG_STEPPING                  2
+#define STM32_HAS_USB                       FALSE
 #define STM32_HAS_OTG1                      TRUE
 #define STM32_OTG1_HANDLER                  Vector14C
 #define STM32_OTG1_NUMBER                   67
 
 #define STM32_HAS_OTG2                      FALSE
-#define STM32_HAS_USB                       FALSE
 
 /* IWDG attributes.*/
 #define STM32_HAS_IWDG                      TRUE
@@ -423,6 +414,6 @@
 #define STM32_CRC_PROGRAMMABLE              TRUE
 /** @} */
 
-#endif /* STM32_REGISTRY_H */
+#endif /* _STM32_REGISTRY_H_ */
 
 /** @} */

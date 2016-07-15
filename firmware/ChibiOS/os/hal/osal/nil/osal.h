@@ -1,5 +1,5 @@
 /*
-    ChibiOS - Copyright (C) 2006..2016 Giovanni Di Sirio
+    ChibiOS - Copyright (C) 2006..2015 Giovanni Di Sirio
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "ch.h"
+#include "nil.h"
 
 #if defined(__SPC5_HAL__)
 #include "platform.h"
@@ -92,17 +92,17 @@
 /**
  * @brief   Size in bits of the @p systick_t type.
  */
-#define OSAL_ST_RESOLUTION                  CH_CFG_ST_RESOLUTION
+#define OSAL_ST_RESOLUTION                  NIL_CFG_ST_RESOLUTION
 
 /**
  * @brief   Required systick frequency or resolution.
  */
-#define OSAL_ST_FREQUENCY                   CH_CFG_ST_FREQUENCY
+#define OSAL_ST_FREQUENCY                   NIL_CFG_ST_FREQUENCY
 
 /**
  * @brief   Systick mode required by the underlying OS.
  */
-#if (CH_CFG_ST_TIMEDELTA == 0) || defined(__DOXYGEN__)
+#if (NIL_CFG_ST_TIMEDELTA == 0) || defined(__DOXYGEN__)
 #define OSAL_ST_MODE                        OSAL_ST_MODE_PERIODIC
 #else
 #define OSAL_ST_MODE                        OSAL_ST_MODE_FREERUNNING
@@ -117,12 +117,8 @@
 /* Derived constants and error checks.                                       */
 /*===========================================================================*/
 
-#if CH_CFG_USE_SEMAPHORES == FALSE
-#error "OSAL requires CH_CFG_USE_SEMAPHORES=TRUE"
-#endif
-
-#if CH_CFG_USE_EVENTS == FALSE
-#error "OSAL requires CH_CFG_USE_EVENTS=TRUE"
+#if NIL_CFG_USE_EVENTS == FALSE
+#error "OSAL requires NIL_CFG_USE_EVENTS=TRUE"
 #endif
 
 #if !(OSAL_ST_MODE == OSAL_ST_MODE_NONE) &&                                 \
@@ -262,17 +258,19 @@ typedef struct {
  *
  * @api
  */
-#define osalDbgCheck(c) chDbgCheck(c)
+#define osalDbgCheck(c) chDbgAssert(c, "parameter check")
 
 /**
  * @brief   I-Class state check.
+ * @note    Not implemented in this simplified OSAL.
  */
-#define osalDbgCheckClassI() chDbgCheckClassI()
+#define osalDbgCheckClassI() /*chDbgCheckClassI()*/
 
 /**
  * @brief   S-Class state check.
+ * @note    Not implemented in this simplified OSAL.
  */
-#define osalDbgCheckClassS() chDbgCheckClassS()
+#define osalDbgCheckClassS() /*chDbgCheckClassS()*/
 /** @} */
 
 /**
