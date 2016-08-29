@@ -23,6 +23,26 @@
  * STN1110 data Receive thread
  */
 
+
+/*
+ * 500KBaud, automatic wakeup, automatic recover
+ * from abort mode.
+
+CAN_InitStructure.CAN_TTCM = DISABLE;
+    CAN_InitStructure.CAN_ABOM = ENABLE;
+    CAN_InitStructure.CAN_AWUM = DISABLE;
+    CAN_InitStructure.CAN_NART = DISABLE;
+    CAN_InitStructure.CAN_RFLM = DISABLE;
+    CAN_InitStructure.CAN_TXFP = DISABLE;
+ */
+
+
+static const CANConfig cancfg = {
+        CAN_MCR_ABOM,
+  CAN_BTR_SJW(1) | CAN_BTR_TS2(2) |
+  CAN_BTR_TS1(9) | CAN_BTR_BRP(2)
+};
+
 char stn_rx_buf[1024] = "booo\r\n";
 
 static void debug_write(char *msg)
@@ -79,11 +99,59 @@ static THD_FUNCTION(STN1110_rx, arg) {
 }
 
 
+/*
+ * Receiver thread.
+ */
+static THD_WORKING_AREA(can_rx_wa, 256);
+static THD_FUNCTION(can_rx, p) {
+  event_listener_t el;
+  CANRxFrame rxmsg;
+
+  chprintf(&SD1, "freq %i\r\n", STM32_HCLK);
+
+  debug_write("CAN Rx starting");
+  (void)p;
+  chRegSetThreadName("receiver");
+  chEvtRegister(&CAND1.rxfull_event, &el, 0);
+  while(!chThdShouldTerminateX()) {
+    if (chEvtWaitAnyTimeout(ALL_EVENTS, MS2ST(100)) == 0)
+      continue;
+    while (canReceive(&CAND1, CAN_ANY_MAILBOX, &rxmsg, TIME_IMMEDIATE) == MSG_OK) {
+      /* Process message.*/
+        debug_write("CAN Rx");
+    }
+  }
+  chEvtUnregister(&CAND1.rxfull_event, &el);
+}
+
+
+/*
+ * Transmitter thread.
+ */
+static THD_WORKING_AREA(can_tx_wa, 256);
+static THD_FUNCTION(can_tx, p) {
+  CANTxFrame txmsg;
+
+  (void)p;
+  chRegSetThreadName("transmitter");
+  txmsg.IDE = CAN_IDE_EXT;
+  txmsg.EID = 0x01234567;
+  txmsg.RTR = CAN_RTR_DATA;
+  txmsg.DLC = 8;
+  txmsg.data32[0] = 0x55AA55AA;
+  txmsg.data32[1] = 0x00FF00FF;
+
+  while (!chThdShouldTerminateX()) {
+    canTransmit(&CAND1, CAN_ANY_MAILBOX, &txmsg, MS2ST(100));
+    chThdSleepMilliseconds(1000);
+    debug_write("CAN Tx");
+  }
+}
+
 /**
  * CAN data receive thread
- */
 static THD_WORKING_AREA(wa_CAN_rx, 128);
-static THD_FUNCTION(CAN_rx, arg) {
+static THD_FUNCTION(CAN_rx2, arg) {
 
     (void)arg;
     chThdSleepMilliseconds(2000);
@@ -97,6 +165,7 @@ static THD_FUNCTION(CAN_rx, arg) {
         chThdSleepMilliseconds(1000);
     }
 }
+ */
 
 /*
  * Application entry point.
@@ -112,6 +181,18 @@ int main(void) {
    */
   halInit();
   chSysInit();
+
+
+  /* CAN RX.       */
+  palSetPadMode(GPIOA, 11, PAL_STM32_MODE_ALTERNATE | PAL_STM32_PUPDR_PULLUP  | PAL_STM32_ALTERNATE(4));
+  /* CAN TX.       */
+  palSetPadMode(GPIOA, 12, PAL_STM32_MODE_ALTERNATE | PAL_STM32_OTYPE_PUSHPULL | PAL_STM32_ALTERNATE(4));
+
+  /*
+   * Activates the CAN driver 1.
+   */
+  canStart(&CAND1, &cancfg);
+
 
   /* Initialize connection to STN1110 on SD2
    */
@@ -134,14 +215,12 @@ int main(void) {
   palSetPadMode(GPIOA, 10, PAL_MODE_ALTERNATE(1));      /* USART1 RX.       */
   sdStart(&SD1, NULL);
 
-
-
-
   /*
    * Creates the processing threads.
    */
   chThdCreateStatic(wa_STN1110_rx, sizeof(wa_STN1110_rx), NORMALPRIO, STN1110_rx, NULL);
-  //chThdCreateStatic(wa_CAN_rx, sizeof(wa_CAN_rx), NORMALPRIO, CAN_rx, NULL);
+  chThdCreateStatic(can_rx_wa, sizeof(can_rx_wa), NORMALPRIO + 7, can_rx, NULL);
+  chThdCreateStatic(can_tx_wa, sizeof(can_tx_wa), NORMALPRIO + 7, can_tx, NULL);
 
   /*
    * Normal main() thread activity, in this demo it does nothing except
