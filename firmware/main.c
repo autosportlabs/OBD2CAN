@@ -37,12 +37,13 @@ CAN_InitStructure.CAN_TTCM = DISABLE;
  */
 
 
-static const CANConfig cancfg = {
-        CAN_MCR_ABOM,
-  CAN_BTR_SJW(1) | CAN_BTR_TS2(2) |
-  CAN_BTR_TS1(9) | CAN_BTR_BRP(2)
-};
 
+//CAN_MCR_ABOM | CAN_MCR_AWUM | CAN_MCR_TXFP
+static const CANConfig cancfg = {
+        CAN_MCR_ABOM | CAN_MCR_AWUM | CAN_MCR_TXFP  ,
+  CAN_BTR_SJW(1) | CAN_BTR_TS2(3) |
+  CAN_BTR_TS1(13) | CAN_BTR_BRP(6)
+};
 char stn_rx_buf[1024] = "booo\r\n";
 
 static void debug_write(char *msg)
@@ -184,9 +185,9 @@ int main(void) {
 
 
   /* CAN RX.       */
-  palSetPadMode(GPIOA, 11, PAL_STM32_MODE_ALTERNATE | PAL_STM32_PUPDR_PULLUP  | PAL_STM32_ALTERNATE(4));
+  palSetPadMode(GPIOA, 11, PAL_STM32_MODE_ALTERNATE | PAL_STM32_ALTERNATE(4));
   /* CAN TX.       */
-  palSetPadMode(GPIOA, 12, PAL_STM32_MODE_ALTERNATE | PAL_STM32_OTYPE_PUSHPULL | PAL_STM32_ALTERNATE(4));
+  palSetPadMode(GPIOA, 12, PAL_STM32_MODE_ALTERNATE | PAL_STM32_ALTERNATE(4));
 
   /*
    * Activates the CAN driver 1.
