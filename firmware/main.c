@@ -39,28 +39,34 @@ static void debug_write(char *msg)
     sdPut(&SD1, '\n');
 }
 
-static void reset_stn1110(void)
+static void send_at(char *at_cmd)
 {
-    debug_write("resetting");
+    sdWrite(&SD2, (uint8_t*)at_cmd, strlen(at_cmd));
+    chThdSleepMilliseconds(1000);
+}
+
+static void reset_stn1110(uint8_t protocol)
+{
+    chprintf(&SD1, "Reset STN1110 - protocol %i\r\n", protocol);
 
     /* set STN1110 NVM reset to disbled (normal running mode)
      * Use internall pullup resistor to disable NVM
      * */
     palSetPadMode(GPIOA, GPIOB_RESET_NVM_STN1110, PAL_MODE_INPUT_PULLUP);
 
-    /* Toggle Reset Line */
+    /* Toggle hard reset Line */
     palSetPadMode(GPIOB, GPIOB_RESET_STN1110, PAL_MODE_OUTPUT_PUSHPULL);
     palClearPad(GPIOB, GPIOB_RESET_STN1110);
     chThdSleepMilliseconds(10);
     palSetPad(GPIOB, GPIOB_RESET_STN1110);
     chThdSleepMilliseconds(1000);
-    debug_write("after reset");
-}
+    debug_write("after hard reset");
 
-static void send_at(char *at_cmd)
-{
-    sdWrite(&SD2, (uint8_t*)at_cmd, strlen(at_cmd));
-    chThdSleepMilliseconds(1000);
+    send_at("AT E0\r");
+
+    send_at("AT SP 0\r");
+
+    send_at("AT DPN\r");
 }
 
 static THD_WORKING_AREA(wa_STN1110_rx, 128);
@@ -68,23 +74,56 @@ static THD_FUNCTION(STN1110_rx, arg) {
   (void)arg;
   chRegSetThreadName("STN1110_RX");
 
-  reset_stn1110();
-  send_at("AT E0\r");
-  send_at("AT SP 0\r");
+  reset_stn1110(0);
 
   while (true) {
-      /* Reset the STN1110 */
       send_at("010C\r");
       debug_write("Waiting for AT response");
       int bytes_read = sdReadTimeout(&SD2,(uint8_t*)stn_rx_buf,sizeof(stn_rx_buf), 50000);
       stn_rx_buf[bytes_read] = '\0';
       chprintf(&SD1, "Bytes read %i\r\n", bytes_read);
       debug_write(stn_rx_buf);
-
   }
 }
 
+#define OBD2CAN_CTRL_ID 7223
+#define CTRL_CMD_RESET 0x01
 
+static void _dispatch_ctrl_rx(CANRxFrame *rx_msg)
+{
+    uint8_t dlc = rx_msg->DLC;
+    if (dlc < 2) {
+        chprintf(&SD1, "Invalid control msg length: %i\r\n", dlc);
+        return;
+    }
+
+    uint8_t ctrl_cmd = rx_msg->data8[0];
+    uint8_t param1 = rx_msg->data8[1];
+    switch(ctrl_cmd) {
+        case 0x01:
+            reset_stn1110(param1); /* protocol */
+            break;
+        default:
+            chprintf(&SD1, "Unknown control message command: %i\r\n", ctrl_cmd);
+            break;
+    }
+}
+
+static void _dispatch_can_rx(CANRxFrame *rx_msg)
+/*
+ * Dispatch an incoming CAN message
+ */
+{
+    /* we are only handling extended IDs */
+    if (CAN_IDE_EXT != rx_msg->IDE)
+        return;
+
+    switch (rx_msg->EID){
+        case OBD2CAN_CTRL_ID:
+            _dispatch_ctrl_rx(rx_msg);
+            break;
+    }
+}
 /*
  * Receiver thread.
  */
@@ -105,6 +144,7 @@ static THD_FUNCTION(can_rx, p) {
     while (canReceive(&CAND1, CAN_ANY_MAILBOX, &rxmsg, TIME_IMMEDIATE) == MSG_OK) {
       /* Process message.*/
         debug_write("CAN Rx");
+        _dispatch_can_rx(&rxmsg);
     }
   }
   chEvtUnregister(&CAND1.rxfull_event, &el);
@@ -142,7 +182,7 @@ static void init_can(void)
     palSetPadMode(GPIOA, 12, PAL_STM32_MODE_ALTERNATE | PAL_STM32_ALTERNATE(4));
 
     /*
-     * Activates the CAN driver 1.
+     * Activates the CAN driver
      */
     canStart(&CAND1, &cancfg);
 }
@@ -197,12 +237,9 @@ int main(void) {
   chThdCreateStatic(can_tx_wa, sizeof(can_tx_wa), NORMALPRIO + 7, can_tx, NULL);
 
   /*
-   * Normal main() thread activity, in this demo it does nothing except
-   * sleeping in a loop and check the button state, when the button is
-   * pressed the test procedure is launched with output on the serial
-   * driver 1.
+   * Main thread sleeps.
    */
   while (true) {
-    chThdSleepMilliseconds(500);
+    chThdSleepMilliseconds(1000);
   }
 }
