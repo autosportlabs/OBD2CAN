@@ -32,11 +32,6 @@ static const CANConfig cancfg = {
 char stn_rx_buf[1024] = "booo\r\n";
 
 #define debug_write(msg, ...) chprintf((BaseSequentialStream *)&SD1, msg, ##__VA_ARGS__); sdPut(&SD1, '\r'); sdPut(&SD1, '\n')
-//{
-//    chprintf(&SD1, msg, __VA_ARGS__);
-//    sdPut(&SD1, '\r');
-//    sdPut(&SD1, '\n');
-//}
 
 static void send_at(char *at_cmd)
 {
@@ -68,6 +63,21 @@ static void reset_stn1110(uint8_t protocol)
     send_at("AT DPN\r");
 }
 
+
+size_t sdGetLine(SerialDriver *sdp, uint8_t *buf, size_t buf_len) {
+  size_t n;
+  uint8_t c;
+
+  n = 0;
+  do {
+    c = sdGet(sdp);
+    *buf++ = c;
+    n++;
+  } while (c != '\r' && n < buf_len - 1);
+  *buf = 0;
+  return n;
+}
+
 static THD_WORKING_AREA(wa_STN1110_rx, 128);
 static THD_FUNCTION(STN1110_rx, arg) {
   (void)arg;
@@ -76,17 +86,20 @@ static THD_FUNCTION(STN1110_rx, arg) {
   reset_stn1110(0);
 
   while (true) {
-      send_at("010C\r");
-      debug_write("Waiting for AT response");
-      int bytes_read = sdReadTimeout(&SD2,(uint8_t*)stn_rx_buf,sizeof(stn_rx_buf), 50000);
-      stn_rx_buf[bytes_read] = '\0';
-      debug_write("Bytes read %i\r\n", bytes_read);
-      debug_write(stn_rx_buf);
+//      debug_write("Waiting for AT response");
+      size_t bytes_read = sdGetLine(&SD2, (uint8_t*)stn_rx_buf, sizeof(stn_rx_buf));
+      //int bytes_read = sdReadTimeout(&SD2,(uint8_t*)stn_rx_buf,sizeof(stn_rx_buf), 5000);
+      if (bytes_read > 0) {
+          stn_rx_buf[bytes_read] = '\0';
+          debug_write("STN1110 rx (%i) ", bytes_read);
+          debug_write(stn_rx_buf);
+      }
   }
 }
 
 #define OBD2CAN_CTRL_ID 7223
 #define CTRL_CMD_RESET 0x01
+#define OBDII_PID_REQUEST 0x7df
 
 static void _dispatch_ctrl_rx(CANRxFrame *rx_msg)
 {
@@ -97,32 +110,65 @@ static void _dispatch_ctrl_rx(CANRxFrame *rx_msg)
     }
 
     uint8_t ctrl_cmd = rx_msg->data8[0];
-    uint8_t param1 = rx_msg->data8[1];
     switch(ctrl_cmd) {
-        case 0x01:
-            reset_stn1110(param1); /* protocol */
+        case CTRL_CMD_RESET:
+        {
+            uint8_t protocol = rx_msg->data8[1];
+            reset_stn1110(protocol);
             break;
+        }
         default:
-            debug_write("Unknown control message command: %i\r\n", ctrl_cmd);
+            debug_write("Unknown control message command: %i", ctrl_cmd);
             break;
     }
+}
+
+static void process_pid_request(CANRxFrame *rx_msg)
+{
+    uint8_t pid = rx_msg->data8[2];
+    debug_write("received PID request %i", pid);
+    chprintf((BaseSequentialStream *)&SD2, "01%02X\r", pid);
+    //chprintf((BaseSequentialStream *)&SD2, "010C\r");
+    //send_at("010C\r");
+    //sdWrite(&SD2, (uint8_t*)at_cmd, strlen(at_cmd))
 }
 
 static void _dispatch_can_rx(CANRxFrame *rx_msg)
 /*
  * Dispatch an incoming CAN message
  */
-{
-    /* we are only handling extended IDs */
-    if (CAN_IDE_EXT != rx_msg->IDE)
-        return;
+{       //send_at("010C\r");
 
-    switch (rx_msg->EID){
-        case OBD2CAN_CTRL_ID:
-            _dispatch_ctrl_rx(rx_msg);
+    /* we are only handling extended IDs */
+
+    uint8_t can_id_type = rx_msg->IDE;
+
+    switch (can_id_type) {
+        case CAN_IDE_EXT:
+        /* Process Extended CAN IDs */
+        {
+            switch (rx_msg->EID){
+                case OBD2CAN_CTRL_ID:
+                    _dispatch_ctrl_rx(rx_msg);
+                    break;
+            }
             break;
+        }
+        break;
+
+        case CAN_IDE_STD:
+        /* Process Standard CAN IDs */
+        {
+            switch (rx_msg->SID){
+                case OBDII_PID_REQUEST:
+                    process_pid_request(rx_msg);
+                    break;
+            }
+        }
+        break;
     }
 }
+
 /*
  * Receiver thread.
  */
@@ -227,13 +273,12 @@ int main(void) {
   init_can();
   init_serial();
 
-
   /*
    * Creates the processing threads.
    */
   chThdCreateStatic(wa_STN1110_rx, sizeof(wa_STN1110_rx), NORMALPRIO, STN1110_rx, NULL);
   chThdCreateStatic(can_rx_wa, sizeof(can_rx_wa), NORMALPRIO + 7, can_rx, NULL);
-  chThdCreateStatic(can_tx_wa, sizeof(can_tx_wa), NORMALPRIO + 7, can_tx, NULL);
+//  chThdCreateStatic(can_tx_wa, sizeof(can_tx_wa), NORMALPRIO + 7, can_tx, NULL);
 
   /*
    * Main thread sleeps.
