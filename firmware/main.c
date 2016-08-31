@@ -36,13 +36,11 @@ CAN_InitStructure.CAN_TTCM = DISABLE;
     CAN_InitStructure.CAN_TXFP = DISABLE;
  */
 
-
-
-//CAN_MCR_ABOM | CAN_MCR_AWUM | CAN_MCR_TXFP
+/* TS1 should be 13, probably off b/c internal oscillator */
 static const CANConfig cancfg = {
         CAN_MCR_ABOM | CAN_MCR_AWUM | CAN_MCR_TXFP  ,
-  CAN_BTR_SJW(1) | CAN_BTR_TS2(3) |
-  CAN_BTR_TS1(13) | CAN_BTR_BRP(6)
+  CAN_BTR_SJW(1) | CAN_BTR_TS2(2) |
+  CAN_BTR_TS1(9) | CAN_BTR_BRP(6)
 };
 char stn_rx_buf[1024] = "booo\r\n";
 
