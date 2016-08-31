@@ -78,6 +78,15 @@ size_t sdGetLine(SerialDriver *sdp, uint8_t *buf, size_t buf_len) {
   return n;
 }
 
+static void process_pid_response(char * buf)
+{
+    if (buf[0] == '>')
+    {
+        debug_write("looks like a pid response");
+
+    }
+
+}
 static THD_WORKING_AREA(wa_STN1110_rx, 128);
 static THD_FUNCTION(STN1110_rx, arg) {
   (void)arg;
@@ -90,9 +99,9 @@ static THD_FUNCTION(STN1110_rx, arg) {
       size_t bytes_read = sdGetLine(&SD2, (uint8_t*)stn_rx_buf, sizeof(stn_rx_buf));
       //int bytes_read = sdReadTimeout(&SD2,(uint8_t*)stn_rx_buf,sizeof(stn_rx_buf), 5000);
       if (bytes_read > 0) {
-          stn_rx_buf[bytes_read] = '\0';
           debug_write("STN1110 rx (%i) ", bytes_read);
           debug_write(stn_rx_buf);
+          process_pid_response(stn_rx_buf);
       }
   }
 }
