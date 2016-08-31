@@ -136,14 +136,14 @@ static THD_FUNCTION(can_tx, p) {
   txmsg.IDE = CAN_IDE_EXT;
   txmsg.EID = 0x01234567;
   txmsg.RTR = CAN_RTR_DATA;
-  txmsg.DLC = 8;
-  txmsg.data32[0] = 0x55AA55AA;
-  txmsg.data32[1] = 0x00FF00FF;
+  txmsg.DLC = 1;
+  txmsg.data8[0] = 0;
 
   while (!chThdShouldTerminateX()) {
     canTransmit(&CAND1, CAN_ANY_MAILBOX, &txmsg, MS2ST(100));
     chThdSleepMilliseconds(1000);
     debug_write("CAN Tx");
+    txmsg.data8[0]++;
   }
 }
 
