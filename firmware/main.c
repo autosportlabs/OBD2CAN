@@ -31,13 +31,12 @@ static const CANConfig cancfg = {
 };
 char stn_rx_buf[1024] = "booo\r\n";
 
-static void debug_write(char *msg)
-{
-    sdWrite(&SD1, (uint8_t*)"stuff: ", 7);
-    sdWrite(&SD1, (uint8_t*)msg, strlen(msg));
-    sdPut(&SD1, '\r');
-    sdPut(&SD1, '\n');
-}
+#define debug_write(msg, ...) chprintf((BaseSequentialStream *)&SD1, msg, ##__VA_ARGS__); sdPut(&SD1, '\r'); sdPut(&SD1, '\n')
+//{
+//    chprintf(&SD1, msg, __VA_ARGS__);
+//    sdPut(&SD1, '\r');
+//    sdPut(&SD1, '\n');
+//}
 
 static void send_at(char *at_cmd)
 {
@@ -47,7 +46,7 @@ static void send_at(char *at_cmd)
 
 static void reset_stn1110(uint8_t protocol)
 {
-    chprintf(&SD1, "Reset STN1110 - protocol %i\r\n", protocol);
+    debug_write("Reset STN1110 - protocol %i\r\n", protocol);
 
     /* set STN1110 NVM reset to disbled (normal running mode)
      * Use internall pullup resistor to disable NVM
@@ -81,7 +80,7 @@ static THD_FUNCTION(STN1110_rx, arg) {
       debug_write("Waiting for AT response");
       int bytes_read = sdReadTimeout(&SD2,(uint8_t*)stn_rx_buf,sizeof(stn_rx_buf), 50000);
       stn_rx_buf[bytes_read] = '\0';
-      chprintf(&SD1, "Bytes read %i\r\n", bytes_read);
+      debug_write("Bytes read %i\r\n", bytes_read);
       debug_write(stn_rx_buf);
   }
 }
@@ -93,7 +92,7 @@ static void _dispatch_ctrl_rx(CANRxFrame *rx_msg)
 {
     uint8_t dlc = rx_msg->DLC;
     if (dlc < 2) {
-        chprintf(&SD1, "Invalid control msg length: %i\r\n", dlc);
+        debug_write("Invalid control msg length: %i\r\n", dlc);
         return;
     }
 
@@ -104,7 +103,7 @@ static void _dispatch_ctrl_rx(CANRxFrame *rx_msg)
             reset_stn1110(param1); /* protocol */
             break;
         default:
-            chprintf(&SD1, "Unknown control message command: %i\r\n", ctrl_cmd);
+            debug_write("Unknown control message command: %i\r\n", ctrl_cmd);
             break;
     }
 }
@@ -132,7 +131,7 @@ static THD_FUNCTION(can_rx, p) {
   event_listener_t el;
   CANRxFrame rxmsg;
 
-  chprintf(&SD1, "freq %i\r\n", STM32_HCLK);
+  debug_write("freq %i\r\n", STM32_HCLK);
 
   debug_write("CAN Rx starting");
   (void)p;
@@ -196,19 +195,19 @@ static void init_serial(void)
 
     /* USART2 TX.       */
     palSetPadMode(GPIOA, 2, PAL_STM32_MODE_ALTERNATE | PAL_STM32_OTYPE_PUSHPULL | PAL_STM32_OSPEED_HIGHEST | PAL_STM32_ALTERNATE(1));
-
     /* USART2 RX.       */
     palSetPadMode(GPIOA, 3, PAL_STM32_MODE_ALTERNATE | PAL_STM32_PUPDR_PULLUP | PAL_STM32_ALTERNATE(1));
-
-    sdStart(&SD2, NULL);
+    sdStart(&SD2, &stn_uart_cfg);
 
     /*
      * Activates the serial driver 1 (debug port) using the driver default configuration.
      * PA9 and PA10 are routed to USART1.
      */
+    static SerialConfig debug_uart_cfg;
+    debug_uart_cfg.speed=9600;
     palSetPadMode(GPIOA, 9, PAL_MODE_ALTERNATE(1));       /* USART1 TX.       */
     palSetPadMode(GPIOA, 10, PAL_MODE_ALTERNATE(1));      /* USART1 RX.       */
-    sdStart(&SD1, NULL);
+    sdStart(&SD1, &debug_uart_cfg);
 }
 
 /*
