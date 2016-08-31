@@ -19,26 +19,13 @@
 #include <string.h>
 #include "chprintf.h"
 #include "pal_lld.h"
-/**
- * STN1110 data Receive thread
- */
-
 
 /*
- * 500KBaud, automatic wakeup, automatic recover
- * from abort mode.
-
-CAN_InitStructure.CAN_TTCM = DISABLE;
-    CAN_InitStructure.CAN_ABOM = ENABLE;
-    CAN_InitStructure.CAN_AWUM = DISABLE;
-    CAN_InitStructure.CAN_NART = DISABLE;
-    CAN_InitStructure.CAN_RFLM = DISABLE;
-    CAN_InitStructure.CAN_TXFP = DISABLE;
+ * 500KBaud, automatic wakeup, Automatic Bus-off management, Transmit FIFO priority
  */
-
-/* TS1 should be 13, probably off b/c internal oscillator */
+/* Note; TS1 should be 13, probably off b/c internal oscillator. check when switching to HSE */
 static const CANConfig cancfg = {
-        CAN_MCR_ABOM | CAN_MCR_AWUM | CAN_MCR_TXFP  ,
+        CAN_MCR_ABOM | CAN_MCR_AWUM | CAN_MCR_TXFP,
   CAN_BTR_SJW(1) | CAN_BTR_TS2(2) |
   CAN_BTR_TS1(9) | CAN_BTR_BRP(6)
 };
@@ -147,24 +134,42 @@ static THD_FUNCTION(can_tx, p) {
   }
 }
 
-/**
- * CAN data receive thread
-static THD_WORKING_AREA(wa_CAN_rx, 128);
-static THD_FUNCTION(CAN_rx2, arg) {
+static void init_can(void)
+{
+    /* CAN RX.       */
+    palSetPadMode(GPIOA, 11, PAL_STM32_MODE_ALTERNATE | PAL_STM32_ALTERNATE(4));
+    /* CAN TX.       */
+    palSetPadMode(GPIOA, 12, PAL_STM32_MODE_ALTERNATE | PAL_STM32_ALTERNATE(4));
 
-    (void)arg;
-    chThdSleepMilliseconds(2000);
-    chRegSetThreadName("CAN_RX");
-   // send_at("AT E0\r");
-    //send_at("AT SP 0\r");
-
-    while (true) {
-        debug_write("sending AT");
-        send_at("AT\r\n");
-        chThdSleepMilliseconds(1000);
-    }
+    /*
+     * Activates the CAN driver 1.
+     */
+    canStart(&CAND1, &cancfg);
 }
- */
+
+static void init_serial(void)
+{
+    /* Initialize connection to STN1110 on SD2
+     */
+    static SerialConfig stn_uart_cfg;
+    stn_uart_cfg.speed=9600;
+
+    /* USART2 TX.       */
+    palSetPadMode(GPIOA, 2, PAL_STM32_MODE_ALTERNATE | PAL_STM32_OTYPE_PUSHPULL | PAL_STM32_OSPEED_HIGHEST | PAL_STM32_ALTERNATE(1));
+
+    /* USART2 RX.       */
+    palSetPadMode(GPIOA, 3, PAL_STM32_MODE_ALTERNATE | PAL_STM32_PUPDR_PULLUP | PAL_STM32_ALTERNATE(1));
+
+    sdStart(&SD2, NULL);
+
+    /*
+     * Activates the serial driver 1 (debug port) using the driver default configuration.
+     * PA9 and PA10 are routed to USART1.
+     */
+    palSetPadMode(GPIOA, 9, PAL_MODE_ALTERNATE(1));       /* USART1 TX.       */
+    palSetPadMode(GPIOA, 10, PAL_MODE_ALTERNATE(1));      /* USART1 RX.       */
+    sdStart(&SD1, NULL);
+}
 
 /*
  * Application entry point.
@@ -180,39 +185,9 @@ int main(void) {
    */
   halInit();
   chSysInit();
+  init_can();
+  init_serial();
 
-
-  /* CAN RX.       */
-  palSetPadMode(GPIOA, 11, PAL_STM32_MODE_ALTERNATE | PAL_STM32_ALTERNATE(4));
-  /* CAN TX.       */
-  palSetPadMode(GPIOA, 12, PAL_STM32_MODE_ALTERNATE | PAL_STM32_ALTERNATE(4));
-
-  /*
-   * Activates the CAN driver 1.
-   */
-  canStart(&CAND1, &cancfg);
-
-
-  /* Initialize connection to STN1110 on SD2
-   */
-  static SerialConfig stn_uart_cfg;
-  stn_uart_cfg.speed=9600;
-
-  /* USART2 TX.       */
-  palSetPadMode(GPIOA, 2, PAL_STM32_MODE_ALTERNATE | PAL_STM32_OTYPE_PUSHPULL | PAL_STM32_OSPEED_HIGHEST | PAL_STM32_ALTERNATE(1));
-
-  /* USART2 RX.       */
-  palSetPadMode(GPIOA, 3, PAL_STM32_MODE_ALTERNATE | PAL_STM32_PUPDR_PULLUP | PAL_STM32_ALTERNATE(1));
-
-  sdStart(&SD2, NULL);
-
-  /*
-   * Activates the serial driver 1 (debug port) using the driver default configuration.
-   * PA9 and PA10 are routed to USART1.
-   */
-  palSetPadMode(GPIOA, 9, PAL_MODE_ALTERNATE(1));       /* USART1 TX.       */
-  palSetPadMode(GPIOA, 10, PAL_MODE_ALTERNATE(1));      /* USART1 RX.       */
-  sdStart(&SD1, NULL);
 
   /*
    * Creates the processing threads.
