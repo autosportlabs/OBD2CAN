@@ -17,9 +17,18 @@
 #include "ch.h"
 #include "hal.h"
 #include <string.h>
+#include <stdlib.h>
 #include "chprintf.h"
 #include "pal_lld.h"
 
+#define OBD2CAN_CTRL_ID 7223
+#define CTRL_CMD_RESET 0x01
+#define OBDII_PID_REQUEST 0x7df
+#define OBDII_PID_RESPONSE 0x7e8
+#define CUSTOM_MODE_SHOW_CURRENT_DATA   0x41
+#define OBDII_PID_POLL_DELAY 100
+#define CAN_TRANSMIT_TIMEOUT 100
+#define MAX_CAN_MESSAGE_SIZE 8
 /*
  * 500KBaud, automatic wakeup, Automatic Bus-off management, Transmit FIFO priority
  */
@@ -30,8 +39,11 @@ static const CANConfig cancfg = {
   CAN_BTR_TS1(9) | CAN_BTR_BRP(6)
 };
 char stn_rx_buf[1024] = "booo\r\n";
+bool system_initialized = false;
+bool pid_request_active = false;
 
 #define debug_write(msg, ...) chprintf((BaseSequentialStream *)&SD1, msg, ##__VA_ARGS__); sdPut(&SD1, '\r'); sdPut(&SD1, '\n')
+//#define debug_write
 
 static void send_at(char *at_cmd)
 {
@@ -41,6 +53,7 @@ static void send_at(char *at_cmd)
 
 static void reset_stn1110(uint8_t protocol)
 {
+    system_initialized = false;
     debug_write("Reset STN1110 - protocol %i\r\n", protocol);
 
     /* set STN1110 NVM reset to disbled (normal running mode)
@@ -61,6 +74,8 @@ static void reset_stn1110(uint8_t protocol)
     send_at("AT SP 0\r");
 
     send_at("AT DPN\r");
+    chThdSleepMilliseconds(3000);
+    system_initialized = true;
 }
 
 
@@ -80,13 +95,55 @@ size_t sdGetLine(SerialDriver *sdp, uint8_t *buf, size_t buf_len) {
 
 static void process_pid_response(char * buf)
 {
-    if (buf[0] == '>')
-    {
-        debug_write("looks like a pid response");
-
+    if (strstr(buf, "STOPPED") != 0) {
+        debug_write("STN1110: stopped");
+        goto pid_complete;
+    }
+    if (strstr(buf, "NO DATA") != 0) {
+        debug_write("STN1110: no data");
+        goto pid_complete;
     }
 
+    if (strncmp(buf, "41 ", 3) == 0)
+    {
+        debug_write("STN1110: PID response");
+        CANTxFrame can_pid_response;
+        can_pid_response.IDE = CAN_IDE_STD;
+        can_pid_response.SID = OBDII_PID_RESPONSE;
+        can_pid_response.RTR = CAN_RTR_DATA;
+        can_pid_response.DLC = 8;
+        can_pid_response.data8[0] = 3;
+        can_pid_response.data8[1] = CUSTOM_MODE_SHOW_CURRENT_DATA;
+        can_pid_response.data8[2] = 0x55;
+        can_pid_response.data8[3] = 0x55;
+        can_pid_response.data8[4] = 0x55;
+        can_pid_response.data8[5] = 0x55;
+        can_pid_response.data8[6] = 0x55;
+        can_pid_response.data8[7] = 0x55;
+
+        char *str_byte;
+        char *save;
+        str_byte = strtok_r(buf, " ", &save);
+        size_t count = 2; //we pre-populated 2 bytes above
+        while(str_byte != NULL && count < MAX_CAN_MESSAGE_SIZE)
+        {
+            str_byte = strtok_r(NULL, " ", &save);
+            uint8_t byte = (uint8_t)strtol(str_byte, NULL, 16);
+            can_pid_response.data8[count] = byte;
+            count++;
+        }
+        canTransmit(&CAND1, CAN_ANY_MAILBOX, &can_pid_response, MS2ST(CAN_TRANSMIT_TIMEOUT));
+        goto pid_complete;
+    }
+    return;
+
+pid_complete:
+    chThdSleepMilliseconds(OBDII_PID_POLL_DELAY);
+    pid_request_active = false;
+    return;
+
 }
+
 static THD_WORKING_AREA(wa_STN1110_rx, 128);
 static THD_FUNCTION(STN1110_rx, arg) {
   (void)arg;
@@ -95,20 +152,14 @@ static THD_FUNCTION(STN1110_rx, arg) {
   reset_stn1110(0);
 
   while (true) {
-//      debug_write("Waiting for AT response");
       size_t bytes_read = sdGetLine(&SD2, (uint8_t*)stn_rx_buf, sizeof(stn_rx_buf));
-      //int bytes_read = sdReadTimeout(&SD2,(uint8_t*)stn_rx_buf,sizeof(stn_rx_buf), 5000);
       if (bytes_read > 0) {
           debug_write("STN1110 rx (%i) ", bytes_read);
-          debug_write(stn_rx_buf);
+          //debug_write(stn_rx_buf);
           process_pid_response(stn_rx_buf);
       }
   }
 }
-
-#define OBD2CAN_CTRL_ID 7223
-#define CTRL_CMD_RESET 0x01
-#define OBDII_PID_REQUEST 0x7df
 
 static void _dispatch_ctrl_rx(CANRxFrame *rx_msg)
 {
@@ -134,9 +185,16 @@ static void _dispatch_ctrl_rx(CANRxFrame *rx_msg)
 
 static void process_pid_request(CANRxFrame *rx_msg)
 {
+    if (!system_initialized)
+        return;
+
+    if (pid_request_active)
+        return;
+
     uint8_t pid = rx_msg->data8[2];
-    debug_write("received PID request %i", pid);
+    //debug_write("received PID request %i", pid);
     chprintf((BaseSequentialStream *)&SD2, "01%02X\r", pid);
+    pid_request_active = true;
     //chprintf((BaseSequentialStream *)&SD2, "010C\r");
     //send_at("010C\r");
     //sdWrite(&SD2, (uint8_t*)at_cmd, strlen(at_cmd))
@@ -204,30 +262,6 @@ static THD_FUNCTION(can_rx, p) {
   chEvtUnregister(&CAND1.rxfull_event, &el);
 }
 
-
-/*
- * Transmitter thread.
- */
-static THD_WORKING_AREA(can_tx_wa, 256);
-static THD_FUNCTION(can_tx, p) {
-  CANTxFrame txmsg;
-
-  (void)p;
-  chRegSetThreadName("transmitter");
-  txmsg.IDE = CAN_IDE_EXT;
-  txmsg.EID = 0x01234567;
-  txmsg.RTR = CAN_RTR_DATA;
-  txmsg.DLC = 1;
-  txmsg.data8[0] = 0;
-
-  while (!chThdShouldTerminateX()) {
-    canTransmit(&CAND1, CAN_ANY_MAILBOX, &txmsg, MS2ST(100));
-    chThdSleepMilliseconds(1000);
-    debug_write("CAN Tx");
-    txmsg.data8[0]++;
-  }
-}
-
 static void init_can(void)
 {
     /* CAN RX.       */
@@ -287,7 +321,6 @@ int main(void) {
    */
   chThdCreateStatic(wa_STN1110_rx, sizeof(wa_STN1110_rx), NORMALPRIO, STN1110_rx, NULL);
   chThdCreateStatic(can_rx_wa, sizeof(can_rx_wa), NORMALPRIO + 7, can_rx, NULL);
-//  chThdCreateStatic(can_tx_wa, sizeof(can_tx_wa), NORMALPRIO + 7, can_tx, NULL);
 
   /*
    * Main thread sleeps.
