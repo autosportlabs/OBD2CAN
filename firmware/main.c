@@ -44,29 +44,31 @@ static THD_FUNCTION(STN1110_rx, arg) {
 }
 
 int main(void) {
+	/*
+	* System initializations.
+	* - HAL initialization, this also initializes the configured device drivers
+	*   and performs the board-specific initializations.
+	* - Kernel initialization, the main() function becomes a thread and the
+	*   RTOS is active.
+	*/
+	/* ChibiOS initialization */
+	halInit();
+	chSysInit();
 
-  /*
-   * System initializations.
-   * - HAL initialization, this also initializes the configured device drivers
-   *   and performs the board-specific initializations.
-   * - Kernel initialization, the main() function becomes a thread and the
-   *   RTOS is active.
-   */
-  halInit();
-  chSysInit();
-  system_can_init();
-  system_serial_init();
+	/* Application specific initialization */
+	system_can_init();
+	system_serial_init();
 
-  /*
-   * Creates the processing threads.
-   */
-  chThdCreateStatic(wa_STN1110_rx, sizeof(wa_STN1110_rx), NORMALPRIO, STN1110_rx, NULL);
-  chThdCreateStatic(can_rx_wa, sizeof(can_rx_wa), NORMALPRIO + 7, can_rx, NULL);
+	/*
+	* Creates the processing threads.
+	*/
+	chThdCreateStatic(wa_STN1110_rx, sizeof(wa_STN1110_rx), NORMALPRIO, STN1110_rx, NULL);
+	chThdCreateStatic(can_rx_wa, sizeof(can_rx_wa), NORMALPRIO + 7, can_rx, NULL);
 
-  /*
-   * Main thread sleeps.
-   */
-  while (true) {
-    chThdSleepMilliseconds(1000);
-  }
+	/*
+	* Main thread sleeps.
+	*/
+	while (true) {
+		chThdSleepMilliseconds(1000);
+	}
 }
