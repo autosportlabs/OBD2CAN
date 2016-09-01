@@ -6,6 +6,12 @@
  */
 #include "system_serial.h"
 
+
+/*
+ * Read a line from the specified serial connection into the specified
+ * buffer buf with a length of buf_len
+ * This call blocks until a \r or buf_len is reached.
+ */
 size_t serial_getline(SerialDriver *sdp, uint8_t *buf, size_t buf_len) {
   size_t n;
   uint8_t c;
@@ -20,26 +26,42 @@ size_t serial_getline(SerialDriver *sdp, uint8_t *buf, size_t buf_len) {
   return n;
 }
 
-void system_serial_init(void)
+/*
+ * Initialize connection for SD1 (logger)
+ */
+static void _system_serial_init_SD1(void)
 {
-    /* Initialize connection to STN1110 on SD2
+    /*
+     * Activates the serial driver 1 (debug port) using the driver default configuration.
+     * PA9 and PA10 are routed to USART1.
      */
-    static SerialConfig stn_uart_cfg;
-    stn_uart_cfg.speed=9600;
+    static SerialConfig uart_cfg;
+    uart_cfg.speed=SD1_BAUD;
+    palSetPadMode(GPIOA, 9, PAL_MODE_ALTERNATE(1));       /* USART1 TX.       */
+    palSetPadMode(GPIOA, 10, PAL_MODE_ALTERNATE(1));      /* USART1 RX.       */
+    sdStart(&SD1, &uart_cfg);
+}
+
+/*
+ * Initialize connection for SD2 (STN1110)
+ */
+static void _system_serial_init_SD2(void)
+{
+    static SerialConfig uart_cfg;
+    uart_cfg.speed=9600;
 
     /* USART2 TX.       */
     palSetPadMode(GPIOA, 2, PAL_STM32_MODE_ALTERNATE | PAL_STM32_OTYPE_PUSHPULL | PAL_STM32_OSPEED_HIGHEST | PAL_STM32_ALTERNATE(1));
     /* USART2 RX.       */
     palSetPadMode(GPIOA, 3, PAL_STM32_MODE_ALTERNATE | PAL_STM32_PUPDR_PULLUP | PAL_STM32_ALTERNATE(1));
-    sdStart(&SD2, &stn_uart_cfg);
+    sdStart(&SD2, &uart_cfg);
+}
 
-    /*
-     * Activates the serial driver 1 (debug port) using the driver default configuration.
-     * PA9 and PA10 are routed to USART1.
-     */
-    static SerialConfig debug_uart_cfg;
-    debug_uart_cfg.speed=9600;
-    palSetPadMode(GPIOA, 9, PAL_MODE_ALTERNATE(1));       /* USART1 TX.       */
-    palSetPadMode(GPIOA, 10, PAL_MODE_ALTERNATE(1));      /* USART1 RX.       */
-    sdStart(&SD1, &debug_uart_cfg);
+/*
+ * Initialize serial and usart subsystems
+ */
+void system_serial_init(void)
+{
+    _system_serial_init_SD1();
+    _system_serial_init_SD2();
 }

@@ -94,7 +94,7 @@ void _process_pid_response(char * buf)
             uint8_t byte;
             if (_parse_byte(str_byte, &byte, 16)){
                 pid_response[count++] = byte;
-//                debug_write("data byte %i %i", count, byte);
+                debug_write("data byte %i %i", count, byte);
             }
             str_byte = strtok_r(NULL, " ", &save);
         }
@@ -103,10 +103,12 @@ void _process_pid_response(char * buf)
         for (i = 0; i < count; i++) {
             can_pid_response.data8[i + 1] = pid_response[i];
         }
-//        for (i = 0; i < 8; i++){
-  //          debug_write("CAN data %i", can_pid_response.data8[i]);
+/*
+        for (i = 0; i < 8; i++){
+            debug_write("CAN data %i", can_pid_response.data8[i]);
 
-    //    }
+        }
+*/
         canTransmit(&CAND1, CAN_ANY_MAILBOX, &can_pid_response, MS2ST(CAN_TRANSMIT_TIMEOUT));
         goto pid_complete;
     }
