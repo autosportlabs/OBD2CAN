@@ -11,6 +11,8 @@
 #include "system.h"
 #include "STN1110.h"
 
+#define MAX_PID_DATA_BYTES 7
+
 /*
  * 500KBaud, automatic wakeup, Automatic Bus-off management, Transmit FIFO priority
  */
@@ -64,21 +66,24 @@ static void _process_pid_request(CANRxFrame *rx_msg)
     if (get_pid_request_active())
         return;
 
-    uint8_t pid = rx_msg->data8[2];
-    //debug_write("received PID request %i", pid);
-    chprintf((BaseSequentialStream *)&SD2, "01%02X\r", pid);
+    uint8_t data_byte_count = rx_msg->data8[0];
+    if (data_byte_count > MAX_PID_DATA_BYTES) {
+        debug_write("SYSTEM_CAN: Invalid PID request; max data bytes %i exceeded %i ", data_byte_count, MAX_PID_DATA_BYTES);
+        return;
+    }
+    size_t i;
+    for (i = 0; i < data_byte_count; i++) {
+        chprintf((BaseSequentialStream *)&SD2, "%02X", rx_msg->data8[i + 1]);
+    }
+    chprintf((BaseSequentialStream *)&SD2, "\r");
     set_pid_request_active(true);
-    //chprintf((BaseSequentialStream *)&SD2, "010C\r");
-    //send_at("010C\r");
-    //sdWrite(&SD2, (uint8_t*)at_cmd, strlen(at_cmd))
 }
 
-void dispatch_can_rx(CANRxFrame *rx_msg)
 /*
  * Dispatch an incoming CAN message
  */
-{       //send_at("010C\r");
-
+void dispatch_can_rx(CANRxFrame *rx_msg)
+{
     /* we are only handling extended IDs */
 
     uint8_t can_id_type = rx_msg->IDE;
