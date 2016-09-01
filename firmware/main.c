@@ -93,6 +93,18 @@ size_t sdGetLine(SerialDriver *sdp, uint8_t *buf, size_t buf_len) {
   return n;
 }
 
+static bool parse_byte(const char *str, uint8_t *val, int base)
+{
+    char *temp;
+    bool rc = true;
+    *val = strtol(str, &temp, base);
+
+    if (temp == str || *temp != '\0')
+        rc = false;
+
+    return rc;
+}
+
 static void process_pid_response(char * buf)
 {
     if (strstr(buf, "STOPPED") != 0) {
@@ -121,17 +133,29 @@ static void process_pid_response(char * buf)
         can_pid_response.data8[6] = 0x55;
         can_pid_response.data8[7] = 0x55;
 
+        uint8_t pid_response[8];
         char *str_byte;
         char *save;
         str_byte = strtok_r(buf, " ", &save);
-        size_t count = 2; //we pre-populated 2 bytes above
+        size_t count = 0;
         while(str_byte != NULL && count < MAX_CAN_MESSAGE_SIZE)
         {
+            uint8_t byte;
+            if (parse_byte(str_byte, &byte, 16)){
+                pid_response[count++] = byte;
+//                debug_write("data byte %i %i", count, byte);
+            }
             str_byte = strtok_r(NULL, " ", &save);
-            uint8_t byte = (uint8_t)strtol(str_byte, NULL, 16);
-            can_pid_response.data8[count] = byte;
-            count++;
         }
+        can_pid_response.data8[0] = count;
+        size_t i;
+        for (i = 0; i < count; i++) {
+            can_pid_response.data8[i + 1] = pid_response[i];
+        }
+//        for (i = 0; i < 8; i++){
+  //          debug_write("CAN data %i", can_pid_response.data8[i]);
+
+    //    }
         canTransmit(&CAND1, CAN_ANY_MAILBOX, &can_pid_response, MS2ST(CAN_TRANSMIT_TIMEOUT));
         goto pid_complete;
     }
