@@ -11,7 +11,7 @@
 #include "hal.h"
 
 #define SD1_BAUD 115200
-#define SD2_BAUD 115200
+#define SD2_BAUD 9600
 
 /*
  * Read a line from the specified serial connection into the specified
@@ -23,6 +23,9 @@ size_t serial_getline(SerialDriver *sdp, uint8_t *buf, size_t buf_len);
 /*
  * Initialize serial and usart subsystems
  */
+
+void system_serial_init_SD1(uint32_t speed);
+void system_serial_init_SD2(uint32_t speed);
 void system_serial_init(void);
 
 #endif /* SERIAL_H_ */

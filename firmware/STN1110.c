@@ -11,6 +11,10 @@
 
 char stn_rx_buf[1024];
 
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
+#define STN1110_RUNTIME_BAUD_RATE 230400
+
 static void _send_at(char *at_cmd)
 {
     sdWrite(&SD2, (uint8_t*)at_cmd, strlen(at_cmd));
@@ -40,6 +44,13 @@ void stn1110_reset(uint8_t protocol)
     _send_at("AT SP 0\r");
 
     _send_at("AT DPN\r");
+
+    _send_at("ST SBR " STR(STN1110_RUNTIME_BAUD_RATE) "\r");
+
+    system_serial_init_SD2(STN1110_RUNTIME_BAUD_RATE);
+
+    chThdSleepMilliseconds(1000);
+
     set_system_initialized(true);
 }
 
@@ -128,7 +139,7 @@ void _process_pid_response(char * buf)
         canTransmit(&CAND1, CAN_ANY_MAILBOX, &can_pid_response, MS2ST(CAN_TRANSMIT_TIMEOUT));
         set_pid_request_active(false);
         debug_write("STN1110: CAN Tx");
-        //_debug_write_tx_CAN_message(&can_pid_response);
+        //_debug_write_CAN_tx_message(&can_pid_response);
     }
 }
 

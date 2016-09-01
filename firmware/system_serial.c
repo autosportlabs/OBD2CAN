@@ -24,14 +24,14 @@ size_t serial_getline(SerialDriver *sdp, uint8_t *buf, size_t buf_len) {
 /*
  * Initialize connection for SD1 (logger)
  */
-static void _system_serial_init_SD1(void)
+void system_serial_init_SD1(uint32_t speed)
 {
     /*
      * Activates the serial driver 1 (debug port) using the driver default configuration.
      * PA9 and PA10 are routed to USART1.
      */
     static SerialConfig uart_cfg;
-    uart_cfg.speed=SD1_BAUD;
+    uart_cfg.speed=speed;
     palSetPadMode(GPIOA, 9, PAL_MODE_ALTERNATE(1));       /* USART1 TX.       */
     palSetPadMode(GPIOA, 10, PAL_MODE_ALTERNATE(1));      /* USART1 RX.       */
     sdStart(&SD1, &uart_cfg);
@@ -40,10 +40,10 @@ static void _system_serial_init_SD1(void)
 /*
  * Initialize connection for SD2 (STN1110)
  */
-static void _system_serial_init_SD2(void)
+void system_serial_init_SD2(uint32_t speed)
 {
     static SerialConfig uart_cfg;
-    uart_cfg.speed=9600;
+    uart_cfg.speed=speed;
 
     /* USART2 TX.       */
     palSetPadMode(GPIOA, 2, PAL_STM32_MODE_ALTERNATE | PAL_STM32_OTYPE_PUSHPULL | PAL_STM32_OSPEED_HIGHEST | PAL_STM32_ALTERNATE(1));
@@ -52,8 +52,8 @@ static void _system_serial_init_SD2(void)
     sdStart(&SD2, &uart_cfg);
 }
 
-void system_serial_init(void)
+void system_serial_init()
 {
-    _system_serial_init_SD1();
-    _system_serial_init_SD2();
+    system_serial_init_SD1(SD1_BAUD);
+    system_serial_init_SD2(SD2_BAUD);
 }
