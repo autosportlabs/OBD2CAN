@@ -58,13 +58,26 @@ static void _dispatch_ctrl_rx(CANRxFrame *rx_msg)
     }
 }
 
+static void _debug_write_CAN_rx_message(CANRxFrame * can_frame)
+{
+    size_t i;
+    for (i = 0; i < can_frame->DLC; i++)
+    {
+        debug_write("CAN rx data: %02X", can_frame->data8[i]);
+    }
+}
+
+
 static void _process_pid_request(CANRxFrame *rx_msg)
 {
     if (!get_system_initialized())
         return;
 
-    if (get_pid_request_active())
+    //_debug_write_CAN_rx_message(rx_msg);
+    if (get_pid_request_active()){
+        debug_write("SYSTEM_CAN: ignoring, pid request active");
         return;
+    }
 
     uint8_t data_byte_count = rx_msg->data8[0];
     if (data_byte_count > MAX_PID_DATA_BYTES) {
@@ -121,15 +134,15 @@ void can_worker(void)
 
 	  debug_write("freq %i\r\n", STM32_HCLK);
 
-	  debug_write("CAN Rx starting");
-	  chRegSetThreadName("receiver");
+	  debug_write("SYSTEM_CAN: CAN Rx starting");
+	  chRegSetThreadName("CAN receiver");
 	  chEvtRegister(&CAND1.rxfull_event, &el, 0);
 	  while(!chThdShouldTerminateX()) {
 	    if (chEvtWaitAnyTimeout(ALL_EVENTS, MS2ST(100)) == 0)
 	      continue;
 	    while (canReceive(&CAND1, CAN_ANY_MAILBOX, &rxmsg, TIME_IMMEDIATE) == MSG_OK) {
 	      /* Process message.*/
-	        debug_write("CAN Rx");
+	        debug_write("SYSTEM_CAN: CAN Rx");
 	        dispatch_can_rx(&rxmsg);
 	    }
 	  }
