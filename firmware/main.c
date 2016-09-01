@@ -26,7 +26,7 @@
 /*
  * CAN receiver thread.
  */
-static THD_WORKING_AREA(can_rx_wa, 256);
+static THD_WORKING_AREA(can_rx_wa, 512);
 static THD_FUNCTION(can_rx, arg) {
 	(void)arg;
 	chRegSetThreadName("CAN_worker");
@@ -36,7 +36,7 @@ static THD_FUNCTION(can_rx, arg) {
 /*
  * STN1110 receiver thread.
  */
-static THD_WORKING_AREA(wa_STN1110_rx, 256);
+static THD_WORKING_AREA(wa_STN1110_rx, 512);
 static THD_FUNCTION(STN1110_rx, arg) {
 	(void)arg;
 	chRegSetThreadName("STN1110_worker");
