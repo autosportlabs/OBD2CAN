@@ -16,316 +16,33 @@
 
 #include "ch.h"
 #include "hal.h"
-#include <string.h>
-#include <stdlib.h>
-#include "chprintf.h"
-#include "pal_lld.h"
-
-#define OBD2CAN_CTRL_ID 7223
-#define CTRL_CMD_RESET 0x01
-#define OBDII_PID_REQUEST 0x7df
-#define OBDII_PID_RESPONSE 0x7e8
-#define CUSTOM_MODE_SHOW_CURRENT_DATA   0x41
-#define OBDII_PID_POLL_DELAY 100
-#define CAN_TRANSMIT_TIMEOUT 100
-#define MAX_CAN_MESSAGE_SIZE 8
-/*
- * 500KBaud, automatic wakeup, Automatic Bus-off management, Transmit FIFO priority
- */
-/* Note; TS1 should be 13, probably off b/c internal oscillator. check when switching to HSE */
-static const CANConfig cancfg = {
-        CAN_MCR_ABOM | CAN_MCR_AWUM | CAN_MCR_TXFP,
-  CAN_BTR_SJW(1) | CAN_BTR_TS2(2) |
-  CAN_BTR_TS1(9) | CAN_BTR_BRP(6)
-};
-char stn_rx_buf[1024] = "booo\r\n";
-bool system_initialized = false;
-bool pid_request_active = false;
-
-#define debug_write(msg, ...) chprintf((BaseSequentialStream *)&SD1, msg, ##__VA_ARGS__); sdPut(&SD1, '\r'); sdPut(&SD1, '\n')
-//#define debug_write
-
-static void send_at(char *at_cmd)
-{
-    sdWrite(&SD2, (uint8_t*)at_cmd, strlen(at_cmd));
-    chThdSleepMilliseconds(1000);
-}
-
-static void reset_stn1110(uint8_t protocol)
-{
-    system_initialized = false;
-    debug_write("Reset STN1110 - protocol %i\r\n", protocol);
-
-    /* set STN1110 NVM reset to disbled (normal running mode)
-     * Use internall pullup resistor to disable NVM
-     * */
-    palSetPadMode(GPIOA, GPIOB_RESET_NVM_STN1110, PAL_MODE_INPUT_PULLUP);
-
-    /* Toggle hard reset Line */
-    palSetPadMode(GPIOB, GPIOB_RESET_STN1110, PAL_MODE_OUTPUT_PUSHPULL);
-    palClearPad(GPIOB, GPIOB_RESET_STN1110);
-    chThdSleepMilliseconds(10);
-    palSetPad(GPIOB, GPIOB_RESET_STN1110);
-    chThdSleepMilliseconds(1000);
-    debug_write("after hard reset");
-
-    send_at("AT E0\r");
-
-    send_at("AT SP 0\r");
-
-    send_at("AT DPN\r");
-    chThdSleepMilliseconds(3000);
-    system_initialized = true;
-}
-
-
-size_t sdGetLine(SerialDriver *sdp, uint8_t *buf, size_t buf_len) {
-  size_t n;
-  uint8_t c;
-
-  n = 0;
-  do {
-    c = sdGet(sdp);
-    *buf++ = c;
-    n++;
-  } while (c != '\r' && n < buf_len - 1);
-  *buf = 0;
-  return n;
-}
-
-static bool parse_byte(const char *str, uint8_t *val, int base)
-{
-    char *temp;
-    bool rc = true;
-    *val = strtol(str, &temp, base);
-
-    if (temp == str || *temp != '\0')
-        rc = false;
-
-    return rc;
-}
-
-static void process_pid_response(char * buf)
-{
-    if (strstr(buf, "STOPPED") != 0) {
-        debug_write("STN1110: stopped");
-        goto pid_complete;
-    }
-    if (strstr(buf, "NO DATA") != 0) {
-        debug_write("STN1110: no data");
-        goto pid_complete;
-    }
-
-    if (strncmp(buf, "41 ", 3) == 0)
-    {
-        debug_write("STN1110: PID response");
-        CANTxFrame can_pid_response;
-        can_pid_response.IDE = CAN_IDE_STD;
-        can_pid_response.SID = OBDII_PID_RESPONSE;
-        can_pid_response.RTR = CAN_RTR_DATA;
-        can_pid_response.DLC = 8;
-        can_pid_response.data8[0] = 3;
-        can_pid_response.data8[1] = CUSTOM_MODE_SHOW_CURRENT_DATA;
-        can_pid_response.data8[2] = 0x55;
-        can_pid_response.data8[3] = 0x55;
-        can_pid_response.data8[4] = 0x55;
-        can_pid_response.data8[5] = 0x55;
-        can_pid_response.data8[6] = 0x55;
-        can_pid_response.data8[7] = 0x55;
-
-        uint8_t pid_response[8];
-        char *str_byte;
-        char *save;
-        str_byte = strtok_r(buf, " ", &save);
-        size_t count = 0;
-        while(str_byte != NULL && count < MAX_CAN_MESSAGE_SIZE)
-        {
-            uint8_t byte;
-            if (parse_byte(str_byte, &byte, 16)){
-                pid_response[count++] = byte;
-//                debug_write("data byte %i %i", count, byte);
-            }
-            str_byte = strtok_r(NULL, " ", &save);
-        }
-        can_pid_response.data8[0] = count;
-        size_t i;
-        for (i = 0; i < count; i++) {
-            can_pid_response.data8[i + 1] = pid_response[i];
-        }
-//        for (i = 0; i < 8; i++){
-  //          debug_write("CAN data %i", can_pid_response.data8[i]);
-
-    //    }
-        canTransmit(&CAND1, CAN_ANY_MAILBOX, &can_pid_response, MS2ST(CAN_TRANSMIT_TIMEOUT));
-        goto pid_complete;
-    }
-    return;
-
-pid_complete:
-    chThdSleepMilliseconds(OBDII_PID_POLL_DELAY);
-    pid_request_active = false;
-    return;
-
-}
-
-static THD_WORKING_AREA(wa_STN1110_rx, 128);
-static THD_FUNCTION(STN1110_rx, arg) {
-  (void)arg;
-  chRegSetThreadName("STN1110_RX");
-
-  reset_stn1110(0);
-
-  while (true) {
-      size_t bytes_read = sdGetLine(&SD2, (uint8_t*)stn_rx_buf, sizeof(stn_rx_buf));
-      if (bytes_read > 0) {
-          debug_write("STN1110 rx (%i) ", bytes_read);
-          //debug_write(stn_rx_buf);
-          process_pid_response(stn_rx_buf);
-      }
-  }
-}
-
-static void _dispatch_ctrl_rx(CANRxFrame *rx_msg)
-{
-    uint8_t dlc = rx_msg->DLC;
-    if (dlc < 2) {
-        debug_write("Invalid control msg length: %i\r\n", dlc);
-        return;
-    }
-
-    uint8_t ctrl_cmd = rx_msg->data8[0];
-    switch(ctrl_cmd) {
-        case CTRL_CMD_RESET:
-        {
-            uint8_t protocol = rx_msg->data8[1];
-            reset_stn1110(protocol);
-            break;
-        }
-        default:
-            debug_write("Unknown control message command: %i", ctrl_cmd);
-            break;
-    }
-}
-
-static void process_pid_request(CANRxFrame *rx_msg)
-{
-    if (!system_initialized)
-        return;
-
-    if (pid_request_active)
-        return;
-
-    uint8_t pid = rx_msg->data8[2];
-    //debug_write("received PID request %i", pid);
-    chprintf((BaseSequentialStream *)&SD2, "01%02X\r", pid);
-    pid_request_active = true;
-    //chprintf((BaseSequentialStream *)&SD2, "010C\r");
-    //send_at("010C\r");
-    //sdWrite(&SD2, (uint8_t*)at_cmd, strlen(at_cmd))
-}
-
-static void _dispatch_can_rx(CANRxFrame *rx_msg)
-/*
- * Dispatch an incoming CAN message
- */
-{       //send_at("010C\r");
-
-    /* we are only handling extended IDs */
-
-    uint8_t can_id_type = rx_msg->IDE;
-
-    switch (can_id_type) {
-        case CAN_IDE_EXT:
-        /* Process Extended CAN IDs */
-        {
-            switch (rx_msg->EID){
-                case OBD2CAN_CTRL_ID:
-                    _dispatch_ctrl_rx(rx_msg);
-                    break;
-            }
-            break;
-        }
-        break;
-
-        case CAN_IDE_STD:
-        /* Process Standard CAN IDs */
-        {
-            switch (rx_msg->SID){
-                case OBDII_PID_REQUEST:
-                    process_pid_request(rx_msg);
-                    break;
-            }
-        }
-        break;
-    }
-}
+#include "settings.h"
+#include "logging.h"
+#include "STN1110.h"
+#include "system.h"
+#include "system_serial.h"
+#include "system_CAN.h"
 
 /*
- * Receiver thread.
+ * CAN receiver thread.
  */
 static THD_WORKING_AREA(can_rx_wa, 256);
-static THD_FUNCTION(can_rx, p) {
-  event_listener_t el;
-  CANRxFrame rxmsg;
-
-  debug_write("freq %i\r\n", STM32_HCLK);
-
-  debug_write("CAN Rx starting");
-  (void)p;
-  chRegSetThreadName("receiver");
-  chEvtRegister(&CAND1.rxfull_event, &el, 0);
-  while(!chThdShouldTerminateX()) {
-    if (chEvtWaitAnyTimeout(ALL_EVENTS, MS2ST(100)) == 0)
-      continue;
-    while (canReceive(&CAND1, CAN_ANY_MAILBOX, &rxmsg, TIME_IMMEDIATE) == MSG_OK) {
-      /* Process message.*/
-        debug_write("CAN Rx");
-        _dispatch_can_rx(&rxmsg);
-    }
-  }
-  chEvtUnregister(&CAND1.rxfull_event, &el);
-}
-
-static void init_can(void)
-{
-    /* CAN RX.       */
-    palSetPadMode(GPIOA, 11, PAL_STM32_MODE_ALTERNATE | PAL_STM32_ALTERNATE(4));
-    /* CAN TX.       */
-    palSetPadMode(GPIOA, 12, PAL_STM32_MODE_ALTERNATE | PAL_STM32_ALTERNATE(4));
-
-    /*
-     * Activates the CAN driver
-     */
-    canStart(&CAND1, &cancfg);
-}
-
-static void init_serial(void)
-{
-    /* Initialize connection to STN1110 on SD2
-     */
-    static SerialConfig stn_uart_cfg;
-    stn_uart_cfg.speed=9600;
-
-    /* USART2 TX.       */
-    palSetPadMode(GPIOA, 2, PAL_STM32_MODE_ALTERNATE | PAL_STM32_OTYPE_PUSHPULL | PAL_STM32_OSPEED_HIGHEST | PAL_STM32_ALTERNATE(1));
-    /* USART2 RX.       */
-    palSetPadMode(GPIOA, 3, PAL_STM32_MODE_ALTERNATE | PAL_STM32_PUPDR_PULLUP | PAL_STM32_ALTERNATE(1));
-    sdStart(&SD2, &stn_uart_cfg);
-
-    /*
-     * Activates the serial driver 1 (debug port) using the driver default configuration.
-     * PA9 and PA10 are routed to USART1.
-     */
-    static SerialConfig debug_uart_cfg;
-    debug_uart_cfg.speed=9600;
-    palSetPadMode(GPIOA, 9, PAL_MODE_ALTERNATE(1));       /* USART1 TX.       */
-    palSetPadMode(GPIOA, 10, PAL_MODE_ALTERNATE(1));      /* USART1 RX.       */
-    sdStart(&SD1, &debug_uart_cfg);
+static THD_FUNCTION(can_rx, arg) {
+	(void)arg;
+	chRegSetThreadName("CAN_worker");
+	can_worker();
 }
 
 /*
- * Application entry point.
+ * STN1110 receiver thread.
  */
+static THD_WORKING_AREA(wa_STN1110_rx, 256);
+static THD_FUNCTION(STN1110_rx, arg) {
+	(void)arg;
+	chRegSetThreadName("STN1110_worker");
+	stn1110_worker();
+}
+
 int main(void) {
 
   /*
@@ -337,8 +54,8 @@ int main(void) {
    */
   halInit();
   chSysInit();
-  init_can();
-  init_serial();
+  system_can_init();
+  system_serial_init();
 
   /*
    * Creates the processing threads.

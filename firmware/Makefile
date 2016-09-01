@@ -115,7 +115,11 @@ CSRC = $(STARTUPSRC) \
        $(BOARDSRC) \
        $(TESTSRC) \
        $(STREAMSSRC) \
-       main.c
+       system.c \
+       system_serial.c \
+       main.c \
+       STN1110.c \
+       system_CAN.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
