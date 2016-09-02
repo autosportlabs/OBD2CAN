@@ -25,6 +25,12 @@
 #include <stdbool.h>
 #include "ch.h"
 
+enum STN1110_error {
+    STN1110_ERROR_NONE,
+    STN1110_ERROR_STOPPED,
+    STN1110_ERROR_NO_DATA,
+    STN1110_ERROR_BUS_INIT
+};
 
 void set_system_initialized(bool initialized);
 bool get_system_initialized(void);
@@ -38,9 +44,11 @@ bool is_pid_request_timeout(systime_t timeout);
 systime_t get_obdii_request_timeout(void);
 void set_obdii_request_timeout(systime_t timeout);
 
+void set_stn1110_error(enum STN1110_error error);
+enum STN1110_error get_stn1110_error(void);
+
 void mark_stn1110_tx(void);
 uint32_t mark_stn1110_rx(void);
-
 uint32_t get_stn1110_latency(void);
 
 

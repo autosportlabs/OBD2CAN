@@ -23,7 +23,7 @@
 #include "settings.h"
 
 static bool system_initialized = false;
-static volatile bool pid_request_active = false;
+static bool pid_request_active = false;
 static systime_t pid_request_time = 0;
 static systime_t obdii_request_timeout = OBDII_INITIAL_TIMEOUT;
 
@@ -31,6 +31,9 @@ static systime_t obdii_request_timeout = OBDII_INITIAL_TIMEOUT;
 static systime_t stn1110_message_rx_timestamp = 0;
 static systime_t stn1110_message_tx_timestamp = 0;
 static uint32_t stn1110_latency_ms = 0;
+
+/*Error statistics */
+static enum STN1110_error stn1110_last_error = STN1110_ERROR_NONE;
 
 void set_system_initialized(bool initialized)
 {
@@ -73,6 +76,16 @@ systime_t get_obdii_request_timeout(void)
 void set_obdii_request_timeout(systime_t timeout)
 {
     obdii_request_timeout = timeout;
+}
+
+void set_stn1110_error(enum STN1110_error error)
+{
+    stn1110_last_error = error;
+}
+
+enum STN1110_error get_stn1110_error(void)
+{
+    return stn1110_last_error;
 }
 
 void mark_stn1110_tx(void)

@@ -34,7 +34,4 @@
 #define CUSTOM_MODE_SHOW_CURRENT_DATA   0x41
 #define MAX_CAN_MESSAGE_SIZE 8
 
-
-
-
 #endif /* SETTINGS_H_ */

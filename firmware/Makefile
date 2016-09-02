@@ -134,6 +134,7 @@ CSRC = $(STARTUPSRC) \
        $(BOARDSRC) \
        $(TESTSRC) \
        $(STREAMSSRC) \
+       util/modp_numtoa.c \
        system.c \
        system_serial.c \
        main.c \
@@ -170,7 +171,7 @@ ASMSRC = $(STARTUPASM) $(PORTASM) $(OSALASM)
 
 INCDIR = $(STARTUPINC) $(KERNINC) $(PORTINC) $(OSALINC) \
          $(HALINC) $(PLATFORMINC) $(BOARDINC) $(TESTINC) \
-         $(STREAMSINC) $(CHIBIOS)/os/various
+         $(STREAMSINC) $(CHIBIOS)/os/various util
 
 #
 # Project, sources and paths

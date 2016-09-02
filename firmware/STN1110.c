@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include "settings.h"
 #include "system.h"
+#include "modp_numtoa.h"
 
 #define LOG_PFX "SYS_STN1110: "
 
@@ -47,6 +48,17 @@ char stn_rx_buf[1024];
 static void _send_at(char *at_cmd)
 {
     sdWrite(&SD2, (uint8_t*)at_cmd, strlen(at_cmd));
+    sdWrite(&SD2, (uint8_t*)"\r", 1);
+    chThdSleepMilliseconds(AT_COMMAND_DELAY);
+}
+
+static void _send_at_param(char *at_cmd, int param)
+{
+    sdWrite(&SD2, (uint8_t*)at_cmd, strlen(at_cmd));
+    char param_str[20];
+    modp_itoa10(param, param_str);
+    sdWrite(&SD2, (uint8_t*)param_str, strlen(param_str));
+    sdWrite(&SD2, (uint8_t*)"\r", 1);
     chThdSleepMilliseconds(AT_COMMAND_DELAY);
 }
 
@@ -68,16 +80,22 @@ void stn1110_reset(uint8_t protocol)
     chThdSleepMilliseconds(LONG_DELAY);
     log_info(LOG_PFX "after hard reset\r\n");
 
-    /* Disable echo */
-    _send_at("AT E0\r");
-
-    /* set the OBDII protocol */
-    _send_at("AT SP 0\r");
-
     /* switch to the target baud rate */
-    _send_at("ST SBR " STR(STN1110_RUNTIME_BAUD_RATE) "\r");
+    _send_at_param("ST SBR ", STN1110_RUNTIME_BAUD_RATE);
     system_serial_init_SD2(STN1110_RUNTIME_BAUD_RATE);
+
+    /* set protocol */
+    _send_at_param("AT SP ", protocol);
+
+    /* Disable echo */
+    _send_at("AT E0");
+
     chThdSleepMilliseconds(LONG_DELAY);
+
+    /* set our initial OBDII timeout
+     * needed when the interface first detects the
+     * protocol
+     */
     set_obdii_request_timeout(OBDII_INITIAL_TIMEOUT);
     set_system_initialized(true);
 }
@@ -113,11 +131,19 @@ void _process_pid_response(char * buf)
         log_info(LOG_PFX "stopped\r\n");
         got_obd2_response = true;
         mark_stn1110_rx();
+        set_stn1110_error(STN1110_ERROR_STOPPED);
     }
     else if (strstr(buf, "NO DATA") != 0) {
         log_info(LOG_PFX "no data\r\n");
         got_obd2_response = true;
         mark_stn1110_rx();
+        set_stn1110_error(STN1110_ERROR_NO_DATA);
+    }
+    else if (strstr(buf, "BUS INIT: ...ERROR") !=0){
+        log_info(LOG_PFX "Bus init error\r\n");
+        got_obd2_response = true;
+        mark_stn1110_rx();
+        set_stn1110_error(STN1110_ERROR_BUS_INIT);
     }
     else if (_starts_with_hex(buf)) {
     	/* Translate the STN1110 PID response to
@@ -182,11 +208,12 @@ void _process_pid_response(char * buf)
 }
 
 void stn1110_worker(void){
-	stn1110_reset(0);
+	stn1110_reset(3);
 	while (true) {
 		size_t bytes_read = serial_getline(&SD2, (uint8_t*)stn_rx_buf, sizeof(stn_rx_buf));
 		if (bytes_read > 0) {
-			_process_pid_response(stn_rx_buf);
+			log_trace(LOG_PFX "STN1110 raw Rx: %s\r\n", stn_rx_buf);
+            _process_pid_response(stn_rx_buf);
 		}
 	}
 }

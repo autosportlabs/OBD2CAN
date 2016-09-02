@@ -28,8 +28,6 @@
 
 #define LOG_PFX "SYS_CAN:     "
 
-#define MAX_PID_DATA_BYTES 7
-
 /*
  * 500KBaud, automatic wakeup, Automatic Bus-off management, Transmit FIFO priority
  */
@@ -99,8 +97,8 @@ static void _process_pid_request(CANRxFrame *rx_msg)
     }
 
     uint8_t data_byte_count = rx_msg->data8[0];
-    if (data_byte_count > MAX_PID_DATA_BYTES) {
-        log_info(LOG_PFX "Invalid PID request; max data bytes %i exceeded %i\r\n", data_byte_count, MAX_PID_DATA_BYTES);
+    if (data_byte_count > MAX_CAN_MESSAGE_SIZE - 1) {
+        log_info(LOG_PFX "Invalid PID request; max data bytes %i exceeded %i\r\n", data_byte_count, MAX_CAN_MESSAGE_SIZE - 1);
         return;
     }
     /* Write the PID request to the STN1110 */
