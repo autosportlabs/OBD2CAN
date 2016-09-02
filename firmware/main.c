@@ -28,10 +28,13 @@
 #include "system_serial.h"
 #include "system_CAN.h"
 
+#define CAN_THREAD_STACK 512
+#define STN1110_THREAD_STACK 512
+#define MAIN_THREAD_SLEEP_MS 1000
 /*
  * CAN receiver thread.
  */
-static THD_WORKING_AREA(can_rx_wa, 512);
+static THD_WORKING_AREA(can_rx_wa, CAN_THREAD_STACK);
 static THD_FUNCTION(can_rx, arg) {
 	(void)arg;
 	chRegSetThreadName("CAN_worker");
@@ -41,7 +44,7 @@ static THD_FUNCTION(can_rx, arg) {
 /*
  * STN1110 receiver thread.
  */
-static THD_WORKING_AREA(wa_STN1110_rx, 512);
+static THD_WORKING_AREA(wa_STN1110_rx, STN1110_THREAD_STACK);
 static THD_FUNCTION(STN1110_rx, arg) {
 	(void)arg;
 	chRegSetThreadName("STN1110_worker");
@@ -68,12 +71,12 @@ int main(void) {
 	* Creates the processing threads.
 	*/
 	chThdCreateStatic(wa_STN1110_rx, sizeof(wa_STN1110_rx), NORMALPRIO, STN1110_rx, NULL);
-	chThdCreateStatic(can_rx_wa, sizeof(can_rx_wa), NORMALPRIO + 7, can_rx, NULL);
+	chThdCreateStatic(can_rx_wa, sizeof(can_rx_wa), NORMALPRIO, can_rx, NULL);
 
 	/*
 	* Main thread sleeps.
 	*/
 	while (true) {
-		chThdSleepMilliseconds(1000);
+		chThdSleepMilliseconds(MAIN_THREAD_SLEEP_MS);
 	}
 }
