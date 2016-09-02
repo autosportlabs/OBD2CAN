@@ -41,7 +41,6 @@ static THD_FUNCTION(can_rx, arg) {
 	(void)arg;
 	chRegSetThreadName("CAN_worker");
 	can_worker();
-	return 0;
 }
 
 /*
@@ -52,7 +51,6 @@ static THD_FUNCTION(STN1110_rx, arg) {
 	(void)arg;
 	chRegSetThreadName("STN1110_worker");
 	stn1110_worker();
-	return 0;
 }
 
 /* Watchdog configuration and initialization

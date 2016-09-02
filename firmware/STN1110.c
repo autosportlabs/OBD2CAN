@@ -39,6 +39,8 @@
 #define AT_COMMAND_DELAY 100
 #define LONG_DELAY 1000
 
+systime_t stn1110_last_message_at = 0;
+
 /* Receive Buffer for the STN1110 */
 char stn_rx_buf[1024];
 
@@ -76,7 +78,7 @@ void stn1110_reset(uint8_t protocol)
     _send_at("ST SBR " STR(STN1110_RUNTIME_BAUD_RATE) "\r");
     system_serial_init_SD2(STN1110_RUNTIME_BAUD_RATE);
     chThdSleepMilliseconds(LONG_DELAY);
-
+    set_obdii_request_timeout(OBDII_INITIAL_TIMEOUT);
     set_system_initialized(true);
 }
 
@@ -121,12 +123,14 @@ void _process_pid_response(char * buf)
 {
     if (strstr(buf, "STOPPED") != 0) {
         log_info(LOG_PFX "stopped\r\n");
-        chThdSleepMilliseconds(OBDII_PID_POLL_DELAY);
+        mark_stn1110_rx();
+        log_trace(LOG_PFX "STN1110 latency: %ims\r\n", get_stn1110_latency());
         set_pid_request_active(false);
     }
     else if (strstr(buf, "NO DATA") != 0) {
         log_info(LOG_PFX "no data\r\n");
-        chThdSleepMilliseconds(OBDII_PID_POLL_DELAY);
+        mark_stn1110_rx();
+        log_trace(LOG_PFX "STN1110 latency: %ims\r\n", get_stn1110_latency());
         set_pid_request_active(false);
     }
     else if (_starts_with_hex(buf)) {
@@ -171,8 +175,15 @@ void _process_pid_response(char * buf)
         chThdSleepMilliseconds(OBDII_PID_POLL_DELAY);
         canTransmit(&CAND1, CAN_ANY_MAILBOX, &can_pid_response, MS2ST(CAN_TRANSMIT_TIMEOUT));
         set_pid_request_active(false);
+        mark_stn1110_rx();
+        log_trace(LOG_PFX "STN1110 latency: %ims\r\n", get_stn1110_latency());
         log_info(LOG_PFX "CAN Tx\r\n");
         _log_CAN_tx_message(&can_pid_response);
+
+        /* We've successfully received at least one message;
+         *set the timeout to the runtime timeout
+         */
+        set_obdii_request_timeout(OBDII_RUNTIME_TIMEOUT);
     }
 }
 

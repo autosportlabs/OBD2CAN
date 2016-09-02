@@ -23,6 +23,8 @@
 #ifndef SYSTEM_H_
 #define SYSTEM_H_
 #include <stdbool.h>
+#include "ch.h"
+
 
 void set_system_initialized(bool initialized);
 bool get_system_initialized(void);
@@ -30,6 +32,16 @@ bool get_system_initialized(void);
 void set_pid_request_active(bool active);
 bool get_pid_request_active(void);
 
+systime_t get_last_pid_request_time(void);
+bool is_pid_request_timeout(systime_t timeout);
+
+systime_t get_obdii_request_timeout(void);
+void set_obdii_request_timeout(systime_t timeout);
+
+void mark_stn1110_tx(void);
+uint32_t mark_stn1110_rx(void);
+
+uint32_t get_stn1110_latency(void);
 
 
 #endif /* SYSTEM_H_ */

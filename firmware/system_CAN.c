@@ -93,14 +93,25 @@ static void _log_CAN_rx_message(CANRxFrame * can_frame)
 
 static void _process_pid_request(CANRxFrame *rx_msg)
 {
-    log_info(LOG_PFX "PID request\r\n");
 
     if (!get_system_initialized())
         return;
 
-    if (get_pid_request_active()){
-        log_info(LOG_PFX "ignoring, pid request active\r\n");
-        return;
+    log_info(LOG_PFX "PID request\r\n");
+
+    /* check if we're in the middle of a PID request,
+     * and if so, did we time out? */
+    if (get_pid_request_active()) {
+        if (is_pid_request_timeout(get_obdii_request_timeout())) {
+            log_info(LOG_PFX "Previous PID request timed out\r\n");
+        }
+        else{
+            log_info(LOG_PFX "Ignoring, Previous PID request active\r\n");
+            return;
+        }
+    }
+    else{
+        log_trace(LOG_PFX  "PID request not active\r\n");
     }
 
     uint8_t data_byte_count = rx_msg->data8[0];
@@ -114,6 +125,8 @@ static void _process_pid_request(CANRxFrame *rx_msg)
         chprintf((BaseSequentialStream *)&SD2, "%02X", rx_msg->data8[i + 1]);
     }
     chprintf((BaseSequentialStream *)&SD2, "\r");
+    log_trace(LOG_PFX "Sent to STN1110\r\n");
+    mark_stn1110_tx();
     set_pid_request_active(true);
 }
 
@@ -161,7 +174,7 @@ void can_worker(void)
 	      continue;
 	    while (canReceive(&CAND1, CAN_ANY_MAILBOX, &rx_msg, TIME_IMMEDIATE) == MSG_OK) {
 	    	/* Process message.*/
-	        log_info(LOG_PFX "CAN Rx\r\n");
+	        log_info(LOG_PFX "CAN Rx %i\r\n", ST2MS(chVTGetSystemTime()));
 	        _log_CAN_rx_message(&rx_msg);
 	        dispatch_can_rx(&rx_msg);
 	    }

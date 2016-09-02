@@ -20,9 +20,15 @@
  */
 
 #include "system.h"
+#include "settings.h"
 
-bool system_initialized = false;
-bool pid_request_active = false;
+static bool system_initialized = false;
+static volatile bool pid_request_active = false;
+static systime_t pid_request_time = 0;
+static systime_t obdii_request_timeout = OBDII_INITIAL_TIMEOUT;
+static systime_t stn1110_message_rx_timestamp = 0;
+static systime_t stn1110_message_tx_timestamp = 0;
+static uint32_t stn1110_latency_ms = 0;
 
 void set_system_initialized(bool initialized)
 {
@@ -37,6 +43,7 @@ bool get_system_initialized(void)
 void set_pid_request_active(bool active)
 {
 	pid_request_active = active;
+	pid_request_time = active ? chVTGetSystemTime() : 0;
 }
 
 bool get_pid_request_active(void)
@@ -44,6 +51,40 @@ bool get_pid_request_active(void)
 	return pid_request_active;
 }
 
+systime_t get_last_pid_request_time(void)
+{
+    return pid_request_time;
+}
 
+bool is_pid_request_timeout(systime_t timeout)
+{
+    return  pid_request_active &&
+            pid_request_time > 0 &&
+            chVTTimeElapsedSinceX(pid_request_time) > MS2ST(timeout);
+}
 
+systime_t get_obdii_request_timeout(void)
+{
+    return obdii_request_timeout;
+}
 
+void set_obdii_request_timeout(systime_t timeout)
+{
+    obdii_request_timeout = timeout;
+}
+
+void mark_stn1110_tx(void)
+{
+    stn1110_message_tx_timestamp = chVTGetSystemTime();
+}
+
+uint32_t mark_stn1110_rx(void)
+{
+    stn1110_message_rx_timestamp = chVTGetSystemTime();
+    stn1110_latency_ms = ST2MS(chVTTimeElapsedSinceX(stn1110_message_tx_timestamp));
+    return stn1110_latency_ms;
+}
+
+uint32_t get_stn1110_latency(void){
+    return stn1110_latency_ms;
+}
