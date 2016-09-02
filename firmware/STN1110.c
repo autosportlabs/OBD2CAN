@@ -63,7 +63,7 @@ static void _send_at_param(char *at_cmd, int param)
     chThdSleepMilliseconds(AT_COMMAND_DELAY);
 }
 
-void stn1110_reset(uint8_t protocol)
+void stn1110_reset(enum obdii_protocol protocol)
 {
 	set_system_initialized(false);
     log_info(LOG_PFX "Reset STN1110 - protocol %i\r\n", protocol);

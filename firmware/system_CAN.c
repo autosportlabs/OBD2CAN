@@ -53,7 +53,7 @@ void system_can_init(void)
 
 static void _process_configure_cmd(CANRxFrame *rx_msg)
 {
-    uint8_t protocol = 0;
+    enum obdii_protocol protocol = obdii_protocol_auto;
     bool should_reset = false;
     uint8_t adaptive_timing = 1;
     uint8_t manual_timeout = 100;

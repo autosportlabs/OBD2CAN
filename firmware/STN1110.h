@@ -28,4 +28,12 @@ void stn1110_reset(uint8_t protocol);
 
 void stn1110_worker(void);
 
+enum obdii_protocol {
+    obdii_protocol_auto,
+    obdii_protocol_j1850_pwm,
+    obdii_protocol_j1850_vpw,
+    obdii_protocol_9141_2,
+    obdii_protocol_iso14230_4_kwp_5baud,
+    obdii_protocol_iso14230_4_fast_init
+};
 #endif /* STN1110_H_ */
