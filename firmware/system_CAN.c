@@ -48,7 +48,7 @@ static void _dispatch_ctrl_rx(CANRxFrame *rx_msg)
 
     uint8_t ctrl_cmd = rx_msg->data8[0];
     switch(ctrl_cmd) {
-        case CTRL_CMD_RESET:
+        case CTRL_CMD_RESET_STN1110:
         {
             uint8_t protocol = rx_msg->data8[1];
             stn1110_reset(protocol);
