@@ -29,6 +29,7 @@ Compiling requires arm-none-eabi gcc version 4.7.4 20130913
 From the firmware directory issue:
 
 > make clean
+
 > make
 
 Flashing
