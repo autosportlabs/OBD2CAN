@@ -34,8 +34,10 @@ From the firmware directory issue:
 Flashing
 ========
 * ST bootloader
+
 The firmware image can be flashed using the ST bootloader using the USART1 header after activating BOOT mode. On the OBD2CAN hardware the BOOT jumper pads is adjacent to the USART1 header. The USART header can be connected to a common FTDI 3.3v USB-USART cable (TTL-232R-3V3).
 
 * JTAG SWD
+
 An openocd script is provided to flash the STM32 via SWD, using a ST-LINK/V2
 
