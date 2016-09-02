@@ -26,6 +26,8 @@ static bool system_initialized = false;
 static volatile bool pid_request_active = false;
 static systime_t pid_request_time = 0;
 static systime_t obdii_request_timeout = OBDII_INITIAL_TIMEOUT;
+
+/*metrics information */
 static systime_t stn1110_message_rx_timestamp = 0;
 static systime_t stn1110_message_tx_timestamp = 0;
 static uint32_t stn1110_latency_ms = 0;

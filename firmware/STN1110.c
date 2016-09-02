@@ -105,33 +105,19 @@ static bool _starts_with_hex(char *buf)
     return _parse_byte(first_char_str, &first_value, 16);
 }
 
-static void _log_CAN_tx_message(CANTxFrame * can_frame)
-{
-    if (get_logging_level() < logging_level_trace)
-        return;
 
-    uint32_t CAN_id = can_frame->IDE == CAN_IDE_EXT ? can_frame->EID : can_frame->SID;
-    log_trace(LOG_PFX "CAN Tx ID(%i): ", CAN_id);
-    size_t i;
-    for (i = 0; i < can_frame->DLC; i++)
-    {
-        log_trace("%02X ", can_frame->data8[i]);
-    }
-    log_trace("\r\n");
-}
 void _process_pid_response(char * buf)
 {
+    bool got_obd2_response = false;
     if (strstr(buf, "STOPPED") != 0) {
         log_info(LOG_PFX "stopped\r\n");
+        got_obd2_response = true;
         mark_stn1110_rx();
-        log_trace(LOG_PFX "STN1110 latency: %ims\r\n", get_stn1110_latency());
-        set_pid_request_active(false);
     }
     else if (strstr(buf, "NO DATA") != 0) {
         log_info(LOG_PFX "no data\r\n");
+        got_obd2_response = true;
         mark_stn1110_rx();
-        log_trace(LOG_PFX "STN1110 latency: %ims\r\n", get_stn1110_latency());
-        set_pid_request_active(false);
     }
     else if (_starts_with_hex(buf)) {
     	/* Translate the STN1110 PID response to
@@ -176,15 +162,22 @@ void _process_pid_response(char * buf)
          * since the other system may immediately send the next PID request
          */
         chThdSleepMilliseconds(OBDII_PID_POLL_DELAY);
+
+        /* Now send the OBDII response */
         canTransmit(&CAND1, CAN_ANY_MAILBOX, &can_pid_response, MS2ST(CAN_TRANSMIT_TIMEOUT));
-        set_pid_request_active(false);
-        log_info(LOG_PFX "CAN Tx\r\n");
-        _log_CAN_tx_message(&can_pid_response);
+        log_CAN_tx_message(LOG_PFX, &can_pid_response);
+
+        got_obd2_response = true;
 
         /* We've successfully received at least one message;
          *set the timeout to the runtime timeout
          */
         set_obdii_request_timeout(OBDII_RUNTIME_TIMEOUT);
+    }
+
+    if (got_obd2_response) {
+        set_pid_request_active(false);
+        log_trace(LOG_PFX "STN1110 response latency: %ims\r\n", get_stn1110_latency());
     }
 }
 

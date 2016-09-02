@@ -31,3 +31,43 @@ enum logging_levels get_logging_level(void)
 {
     return logging_level;
 }
+
+static void _log_trace_can_frame(uint8_t dlc, uint8_t ide, uint32_t sid, uint32_t eid, uint8_t * data_bytes)
+{
+    uint32_t can_id = ide == CAN_IDE_EXT ? eid : sid;
+    log_trace(" ID(%i) ", can_id);
+
+    size_t i;
+    for (i = 0; i < dlc; i++)
+    {
+        log_trace("%02X ", data_bytes[i]);
+    }
+}
+void log_CAN_rx_message(char* log_pfx, CANRxFrame * can_frame)
+{
+    if (get_logging_level() < logging_level_info)
+        return;
+
+    log_info(log_pfx);
+    log_info("CAN Rx");
+
+    if (get_logging_level() >= logging_level_trace){
+        _log_trace_can_frame(can_frame->DLC, can_frame->IDE, can_frame->SID, can_frame->EID, can_frame->data8);
+    }
+    log_info("\r\n");
+}
+
+
+void log_CAN_tx_message(char *log_pfx, CANTxFrame * can_frame)
+{
+    if (get_logging_level() < logging_level_info)
+        return;
+
+    log_info(log_pfx);
+    log_info("CAN Tx");
+
+    if (get_logging_level() >= logging_level_trace){
+        _log_trace_can_frame(can_frame->DLC, can_frame->IDE, can_frame->SID, can_frame->EID, can_frame->data8);
+    }
+    log_info("\r\n");
+}

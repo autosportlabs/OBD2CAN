@@ -42,4 +42,9 @@ void set_logging_level(enum logging_levels level);
 
 enum logging_levels get_logging_level(void);
 
+void log_CAN_rx_message(char* log_pfx, CANRxFrame * can_frame);
+
+void log_CAN_tx_message(char *log_pfx, CANTxFrame * can_frame);
+
+
 #endif /* LOGGING_H_ */

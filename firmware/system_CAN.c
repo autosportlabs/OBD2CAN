@@ -75,22 +75,6 @@ static void _dispatch_ctrl_rx(CANRxFrame *rx_msg)
     }
 }
 
-static void _log_CAN_rx_message(CANRxFrame * can_frame)
-{
-    if (get_logging_level() < logging_level_trace)
-        return;
-
-    uint32_t CAN_id = can_frame->IDE == CAN_IDE_EXT ? can_frame->EID : can_frame->SID;
-    log_trace(LOG_PFX "CAN Rx ID(%i): ", CAN_id);
-    size_t i;
-    for (i = 0; i < can_frame->DLC; i++)
-    {
-        log_trace("%02X ", can_frame->data8[i]);
-    }
-    log_trace("\r\n");
-}
-
-
 static void _process_pid_request(CANRxFrame *rx_msg)
 {
 
@@ -174,8 +158,7 @@ void can_worker(void)
 	      continue;
 	    while (canReceive(&CAND1, CAN_ANY_MAILBOX, &rx_msg, TIME_IMMEDIATE) == MSG_OK) {
 	    	/* Process message.*/
-	        log_info(LOG_PFX "CAN Rx %i\r\n", ST2MS(chVTGetSystemTime()));
-	        _log_CAN_rx_message(&rx_msg);
+	        log_CAN_rx_message(LOG_PFX, &rx_msg);
 	        dispatch_can_rx(&rx_msg);
 	    }
 	  }
