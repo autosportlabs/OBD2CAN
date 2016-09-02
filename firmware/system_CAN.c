@@ -108,6 +108,7 @@ static void _process_pid_request(CANRxFrame *rx_msg)
         log_info(LOG_PFX "Invalid PID request; max data bytes %i exceeded %i\r\n", data_byte_count, MAX_PID_DATA_BYTES);
         return;
     }
+    /* Write the PID request to the STN1110 */
     size_t i;
     for (i = 0; i < data_byte_count; i++) {
         chprintf((BaseSequentialStream *)&SD2, "%02X", rx_msg->data8[i + 1]);
@@ -121,8 +122,6 @@ static void _process_pid_request(CANRxFrame *rx_msg)
  */
 void dispatch_can_rx(CANRxFrame *rx_msg)
 {
-    /* we are only handling extended IDs */
-
     uint8_t can_id_type = rx_msg->IDE;
 
     switch (can_id_type) {
@@ -161,7 +160,7 @@ void can_worker(void)
 	    if (chEvtWaitAnyTimeout(ALL_EVENTS, MS2ST(100)) == 0)
 	      continue;
 	    while (canReceive(&CAND1, CAN_ANY_MAILBOX, &rx_msg, TIME_IMMEDIATE) == MSG_OK) {
-	      /* Process message.*/
+	    	/* Process message.*/
 	        log_info(LOG_PFX "CAN Rx\r\n");
 	        _log_CAN_rx_message(&rx_msg);
 	        dispatch_can_rx(&rx_msg);

@@ -35,15 +35,17 @@
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
 #define STN1110_RUNTIME_BAUD_RATE 230400
+#define RESET_DELAY 10
+#define AT_COMMAND_DELAY 100
+#define LONG_DELAY 1000
 
 /* Receive Buffer for the STN1110 */
 char stn_rx_buf[1024];
 
-
 static void _send_at(char *at_cmd)
 {
     sdWrite(&SD2, (uint8_t*)at_cmd, strlen(at_cmd));
-    chThdSleepMilliseconds(100);
+    chThdSleepMilliseconds(AT_COMMAND_DELAY);
 }
 
 void stn1110_reset(uint8_t protocol)
@@ -59,22 +61,21 @@ void stn1110_reset(uint8_t protocol)
     /* Toggle hard reset Line */
     palSetPadMode(GPIOB, GPIOB_RESET_STN1110, PAL_MODE_OUTPUT_PUSHPULL);
     palClearPad(GPIOB, GPIOB_RESET_STN1110);
-    chThdSleepMilliseconds(10);
+    chThdSleepMilliseconds(RESET_DELAY);
     palSetPad(GPIOB, GPIOB_RESET_STN1110);
-    chThdSleepMilliseconds(1000);
+    chThdSleepMilliseconds(LONG_DELAY);
     log_info(LOG_PFX "after hard reset\r\n");
 
+    /* Disable echo */
     _send_at("AT E0\r");
 
+    /* set the OBDII protocol */
     _send_at("AT SP 0\r");
 
-    _send_at("AT DPN\r");
-
+    /* switch to the target baud rate */
     _send_at("ST SBR " STR(STN1110_RUNTIME_BAUD_RATE) "\r");
-
     system_serial_init_SD2(STN1110_RUNTIME_BAUD_RATE);
-
-    chThdSleepMilliseconds(1000);
+    chThdSleepMilliseconds(LONG_DELAY);
 
     set_system_initialized(true);
 }
@@ -87,7 +88,6 @@ static bool _parse_byte(const char *str, uint8_t *val, int base)
 
     if (temp == str || *temp != '\0')
         rc = false;
-
     return rc;
 }
 
@@ -130,6 +130,8 @@ void _process_pid_response(char * buf)
         set_pid_request_active(false);
     }
     else if (_starts_with_hex(buf)) {
+    	/* Translate the STN1110 PID response to
+    	 * the equivalent CAN message */
         log_info(LOG_PFX "PID reply\r\n");
         CANTxFrame can_pid_response;
         can_pid_response.IDE = CAN_IDE_STD;
@@ -163,7 +165,7 @@ void _process_pid_response(char * buf)
         for (i = 0; i < count; i++) {
             can_pid_response.data8[i + 1] = pid_response[i];
         }
-        /* Pause before transmitting the message
+        /* Pause before transmitting the message to limit update rate
          * since the other system may immediately send the next PID request
          */
         chThdSleepMilliseconds(OBDII_PID_POLL_DELAY);
@@ -179,7 +181,6 @@ void stn1110_worker(void){
 	while (true) {
 		size_t bytes_read = serial_getline(&SD2, (uint8_t*)stn_rx_buf, sizeof(stn_rx_buf));
 		if (bytes_read > 0) {
-			//log_info("STN1110 rx (%i) %s ", bytes_read, stn_rx_buf);
 			_process_pid_response(stn_rx_buf);
 		}
 	}
