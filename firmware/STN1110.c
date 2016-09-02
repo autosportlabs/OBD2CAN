@@ -169,14 +169,15 @@ void _process_pid_response(char * buf)
         for (i = 0; i < count; i++) {
             can_pid_response.data8[i + 1] = pid_response[i];
         }
+        mark_stn1110_rx();
+        log_trace(LOG_PFX "STN1110 latency: %ims\r\n", get_stn1110_latency());
+
         /* Pause before transmitting the message to limit update rate
          * since the other system may immediately send the next PID request
          */
         chThdSleepMilliseconds(OBDII_PID_POLL_DELAY);
         canTransmit(&CAND1, CAN_ANY_MAILBOX, &can_pid_response, MS2ST(CAN_TRANSMIT_TIMEOUT));
         set_pid_request_active(false);
-        mark_stn1110_rx();
-        log_trace(LOG_PFX "STN1110 latency: %ims\r\n", get_stn1110_latency());
         log_info(LOG_PFX "CAN Tx\r\n");
         _log_CAN_tx_message(&can_pid_response);
 
