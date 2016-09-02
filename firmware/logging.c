@@ -20,10 +20,12 @@
  */
 #include "logging.h"
 
-static enum logging_levels logging_level = logging_level_trace;
+static enum logging_levels logging_level = logging_level_none;
 
 void set_logging_level(enum logging_levels level)
 {
+    if (level > logging_level_trace)
+        return;
     logging_level = level;
 }
 

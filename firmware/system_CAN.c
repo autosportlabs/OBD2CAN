@@ -51,6 +51,36 @@ void system_can_init(void)
     canStart(&CAND1, &cancfg);
 }
 
+static void _process_configure_cmd(CANRxFrame *rx_msg)
+{
+    uint8_t protocol = 0;
+    bool should_reset = false;
+    uint8_t adaptive_timing = 1;
+    uint8_t manual_timeout = 100;
+
+    uint8_t dlc = rx_msg->DLC;
+    if (dlc > 1) {
+        set_logging_level((enum logging_levels)rx_msg->data8[1]);
+    }
+    if (dlc > 2) {
+        should_reset = rx_msg->data8[2] != 0;
+    }
+    if (dlc > 3) {
+        protocol = rx_msg->data8[3];
+    }
+    if (dlc > 4) {
+        adaptive_timing = rx_msg->data8[4];
+    }
+    if (dlc > 5) {
+        manual_timeout = rx_msg->data8[5];
+    }
+
+    if (should_reset) {
+        stn1110_reset(protocol);
+    }
+}
+
+
 static void _dispatch_ctrl_rx(CANRxFrame *rx_msg)
 {
     uint8_t dlc = rx_msg->DLC;
@@ -61,10 +91,9 @@ static void _dispatch_ctrl_rx(CANRxFrame *rx_msg)
 
     uint8_t ctrl_cmd = rx_msg->data8[0];
     switch(ctrl_cmd) {
-        case CTRL_CMD_RESET_STN1110:
+        case CTRL_CMD_CONFIGURE:
         {
-            uint8_t protocol = rx_msg->data8[1];
-            stn1110_reset(protocol);
+            _process_configure_cmd(rx_msg);
             break;
         }
         default:

@@ -35,6 +35,7 @@
 
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
+#define STN1110_INITIAL_BAUD_RATE 9600
 #define STN1110_RUNTIME_BAUD_RATE 230400
 #define RESET_DELAY 10
 #define AT_COMMAND_DELAY 100
@@ -80,6 +81,8 @@ void stn1110_reset(uint8_t protocol)
     chThdSleepMilliseconds(LONG_DELAY);
     log_info(LOG_PFX "after hard reset\r\n");
 
+    system_serial_init_SD2(STN1110_INITIAL_BAUD_RATE);
+
     /* switch to the target baud rate */
     _send_at_param("ST SBR ", STN1110_RUNTIME_BAUD_RATE);
     system_serial_init_SD2(STN1110_RUNTIME_BAUD_RATE);
@@ -97,6 +100,7 @@ void stn1110_reset(uint8_t protocol)
      * protocol
      */
     set_obdii_request_timeout(OBDII_INITIAL_TIMEOUT);
+    set_pid_request_active(false);
     set_system_initialized(true);
 }
 
@@ -208,7 +212,7 @@ void _process_pid_response(char * buf)
 }
 
 void stn1110_worker(void){
-	stn1110_reset(3);
+	stn1110_reset(0);
 	while (true) {
 		size_t bytes_read = serial_getline(&SD2, (uint8_t*)stn_rx_buf, sizeof(stn_rx_buf));
 		if (bytes_read > 0) {
