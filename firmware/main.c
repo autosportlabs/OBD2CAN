@@ -31,6 +31,8 @@
 #define CAN_THREAD_STACK 512
 #define STN1110_THREAD_STACK 512
 #define MAIN_THREAD_SLEEP_MS 1000
+#define WATCHDOG_TIMEOUT 1000
+
 /*
  * CAN receiver thread.
  */
@@ -39,6 +41,7 @@ static THD_FUNCTION(can_rx, arg) {
 	(void)arg;
 	chRegSetThreadName("CAN_worker");
 	can_worker();
+	return 0;
 }
 
 /*
@@ -49,6 +52,18 @@ static THD_FUNCTION(STN1110_rx, arg) {
 	(void)arg;
 	chRegSetThreadName("STN1110_worker");
 	stn1110_worker();
+	return 0;
+}
+
+/* Watchdog configuration and initialization
+ */
+static void _start_watchdog(void)
+{
+    const WDGConfig wdgcfg = {
+            STM32_IWDG_PR_4,
+          STM32_IWDG_RL(WATCHDOG_TIMEOUT)
+        };
+    wdgStart(&WDGD1, &wdgcfg);
 }
 
 int main(void) {
@@ -62,6 +77,7 @@ int main(void) {
 	/* ChibiOS initialization */
 	halInit();
 	chSysInit();
+	//_start_watchdog();
 
 	/* Application specific initialization */
 	system_can_init();
@@ -73,10 +89,9 @@ int main(void) {
 	chThdCreateStatic(wa_STN1110_rx, sizeof(wa_STN1110_rx), NORMALPRIO, STN1110_rx, NULL);
 	chThdCreateStatic(can_rx_wa, sizeof(can_rx_wa), NORMALPRIO, can_rx, NULL);
 
-	/*
-	* Main thread sleeps.
-	*/
 	while (true) {
 		chThdSleepMilliseconds(MAIN_THREAD_SLEEP_MS);
+        //wdgReset(&WDGD1);
 	}
+	return 0;
 }
