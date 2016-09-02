@@ -11,6 +11,8 @@
 #include "system.h"
 #include "STN1110.h"
 
+#define LOG_PFX "SYS_CAN:     "
+
 #define MAX_PID_DATA_BYTES 7
 
 /*
@@ -40,7 +42,7 @@ static void _dispatch_ctrl_rx(CANRxFrame *rx_msg)
 {
     uint8_t dlc = rx_msg->DLC;
     if (dlc < 2) {
-        debug_write("Invalid control msg length: %i\r\n", dlc);
+        log_info(LOG_PFX "Invalid control msg length: %i\r\n", dlc);
         return;
     }
 
@@ -53,35 +55,42 @@ static void _dispatch_ctrl_rx(CANRxFrame *rx_msg)
             break;
         }
         default:
-            debug_write("Unknown control message command: %i", ctrl_cmd);
+            log_info(LOG_PFX "Unknown control message command: %i\r\n", ctrl_cmd);
             break;
     }
 }
 
-static void _debug_write_CAN_rx_message(CANRxFrame * can_frame)
+static void _log_CAN_rx_message(CANRxFrame * can_frame)
 {
+    if (get_logging_level() < logging_level_trace)
+        return;
+
+    uint32_t CAN_id = can_frame->IDE == CAN_IDE_EXT ? can_frame->EID : can_frame->SID;
+    log_trace(LOG_PFX "CAN Rx ID(%i): ", CAN_id);
     size_t i;
     for (i = 0; i < can_frame->DLC; i++)
     {
-        debug_write("CAN rx data: %02X", can_frame->data8[i]);
+        log_trace("%02X ", can_frame->data8[i]);
     }
+    log_trace("\r\n");
 }
 
 
 static void _process_pid_request(CANRxFrame *rx_msg)
 {
+    log_info(LOG_PFX "PID request\r\n");
+
     if (!get_system_initialized())
         return;
 
-    //_debug_write_CAN_rx_message(rx_msg);
     if (get_pid_request_active()){
-        debug_write("SYSTEM_CAN: ignoring, pid request active");
+        log_info(LOG_PFX "ignoring, pid request active\r\n");
         return;
     }
 
     uint8_t data_byte_count = rx_msg->data8[0];
     if (data_byte_count > MAX_PID_DATA_BYTES) {
-        debug_write("SYSTEM_CAN: Invalid PID request; max data bytes %i exceeded %i ", data_byte_count, MAX_PID_DATA_BYTES);
+        log_info(LOG_PFX "Invalid PID request; max data bytes %i exceeded %i\r\n", data_byte_count, MAX_PID_DATA_BYTES);
         return;
     }
     size_t i;
@@ -130,20 +139,17 @@ void dispatch_can_rx(CANRxFrame *rx_msg)
 void can_worker(void)
 {
 	  event_listener_t el;
-	  CANRxFrame rxmsg;
-
-	  debug_write("freq %i\r\n", STM32_HCLK);
-
-	  debug_write("SYSTEM_CAN: CAN Rx starting");
+	  CANRxFrame rx_msg;
 	  chRegSetThreadName("CAN receiver");
 	  chEvtRegister(&CAND1.rxfull_event, &el, 0);
 	  while(!chThdShouldTerminateX()) {
 	    if (chEvtWaitAnyTimeout(ALL_EVENTS, MS2ST(100)) == 0)
 	      continue;
-	    while (canReceive(&CAND1, CAN_ANY_MAILBOX, &rxmsg, TIME_IMMEDIATE) == MSG_OK) {
+	    while (canReceive(&CAND1, CAN_ANY_MAILBOX, &rx_msg, TIME_IMMEDIATE) == MSG_OK) {
 	      /* Process message.*/
-	        debug_write("SYSTEM_CAN: CAN Rx");
-	        dispatch_can_rx(&rxmsg);
+	        log_info(LOG_PFX "CAN Rx\r\n");
+	        _log_CAN_rx_message(&rx_msg);
+	        dispatch_can_rx(&rx_msg);
 	    }
 	  }
 	  chEvtUnregister(&CAND1.rxfull_event, &el);

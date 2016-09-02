@@ -9,11 +9,15 @@
 #include "settings.h"
 #include "system.h"
 
-char stn_rx_buf[1024];
+#define LOG_PFX "SYS_STN1110: "
 
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
 #define STN1110_RUNTIME_BAUD_RATE 230400
+
+/* Receive Buffer for the STN1110 */
+char stn_rx_buf[1024];
+
 
 static void _send_at(char *at_cmd)
 {
@@ -24,7 +28,7 @@ static void _send_at(char *at_cmd)
 void stn1110_reset(uint8_t protocol)
 {
 	set_system_initialized(false);
-    debug_write("Reset STN1110 - protocol %i\r\n", protocol);
+    log_info(LOG_PFX "Reset STN1110 - protocol %i\r\n", protocol);
 
     /* set STN1110 NVM reset to disbled (normal running mode)
      * Use internall pullup resistor to disable NVM
@@ -37,7 +41,7 @@ void stn1110_reset(uint8_t protocol)
     chThdSleepMilliseconds(10);
     palSetPad(GPIOB, GPIOB_RESET_STN1110);
     chThdSleepMilliseconds(1000);
-    debug_write("after hard reset");
+    log_info(LOG_PFX "after hard reset\r\n");
 
     _send_at("AT E0\r");
 
@@ -78,28 +82,34 @@ static bool _starts_with_hex(char *buf)
     return _parse_byte(first_char_str, &first_value, 16);
 }
 
-static void _debug_write_CAN_tx_message(CANTxFrame * can_frame)
+static void _log_CAN_tx_message(CANTxFrame * can_frame)
 {
+    if (get_logging_level() < logging_level_trace)
+        return;
+
+    uint32_t CAN_id = can_frame->IDE == CAN_IDE_EXT ? can_frame->EID : can_frame->SID;
+    log_trace(LOG_PFX "CAN Tx ID(%i): ", CAN_id);
     size_t i;
     for (i = 0; i < can_frame->DLC; i++)
     {
-        debug_write("CAN tx data: %02X", can_frame->data8[i]);
+        log_trace("%02X ", can_frame->data8[i]);
     }
+    log_trace("\r\n");
 }
 void _process_pid_response(char * buf)
 {
     if (strstr(buf, "STOPPED") != 0) {
-        debug_write("STN1110: stopped");
+        log_info(LOG_PFX "stopped\r\n");
         chThdSleepMilliseconds(OBDII_PID_POLL_DELAY);
         set_pid_request_active(false);
     }
     else if (strstr(buf, "NO DATA") != 0) {
-        debug_write("STN1110: no data");
+        log_info(LOG_PFX "no data\r\n");
         chThdSleepMilliseconds(OBDII_PID_POLL_DELAY);
         set_pid_request_active(false);
     }
     else if (_starts_with_hex(buf)) {
-        debug_write("STN1110: got OBDII reply");
+        log_info(LOG_PFX "PID reply\r\n");
         CANTxFrame can_pid_response;
         can_pid_response.IDE = CAN_IDE_STD;
         can_pid_response.SID = OBDII_PID_RESPONSE;
@@ -138,18 +148,17 @@ void _process_pid_response(char * buf)
         chThdSleepMilliseconds(OBDII_PID_POLL_DELAY);
         canTransmit(&CAND1, CAN_ANY_MAILBOX, &can_pid_response, MS2ST(CAN_TRANSMIT_TIMEOUT));
         set_pid_request_active(false);
-        debug_write("STN1110: CAN Tx");
-        //_debug_write_CAN_tx_message(&can_pid_response);
+        log_info(LOG_PFX "CAN Tx\r\n");
+        _log_CAN_tx_message(&can_pid_response);
     }
 }
 
 void stn1110_worker(void){
 	stn1110_reset(0);
-
 	while (true) {
 		size_t bytes_read = serial_getline(&SD2, (uint8_t*)stn_rx_buf, sizeof(stn_rx_buf));
 		if (bytes_read > 0) {
-			//debug_write("STN1110 rx (%i) %s ", bytes_read, stn_rx_buf);
+			//log_info("STN1110 rx (%i) %s ", bytes_read, stn_rx_buf);
 			_process_pid_response(stn_rx_buf);
 		}
 	}

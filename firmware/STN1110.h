@@ -9,7 +9,6 @@
 #define STN1110_H_
 #include "ch.h"
 #include "hal.h"
-#include "pal_lld.h"
 
 void stn1110_reset(uint8_t protocol);
 

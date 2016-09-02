@@ -119,7 +119,8 @@ CSRC = $(STARTUPSRC) \
        system_serial.c \
        main.c \
        STN1110.c \
-       system_CAN.c
+       system_CAN.c \
+       logging.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
