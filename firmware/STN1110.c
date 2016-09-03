@@ -136,26 +136,32 @@ static bool _starts_with_hex(char *buf)
 }
 
 
-void _process_pid_response(char * buf)
+void _process_stn1110_response(char * buf)
 {
+    if (buf[0] == '>')
+        buf++;
+
     bool got_obd2_response = false;
     if (strstr(buf, "STOPPED") != 0) {
         log_info(LOG_PFX "stopped\r\n");
         got_obd2_response = true;
         mark_stn1110_rx();
         set_stn1110_error(STN1110_ERROR_STOPPED);
+        chThdSleepMilliseconds(OBDII_PID_ERROR_DELAY);
     }
     else if (strstr(buf, "NO DATA") != 0) {
         log_info(LOG_PFX "no data\r\n");
         got_obd2_response = true;
         mark_stn1110_rx();
         set_stn1110_error(STN1110_ERROR_NO_DATA);
+        chThdSleepMilliseconds(OBDII_PID_ERROR_DELAY);
     }
     else if (strstr(buf, "BUS INIT: ...ERROR") !=0){
         log_info(LOG_PFX "Bus init error\r\n");
         got_obd2_response = true;
         mark_stn1110_rx();
         set_stn1110_error(STN1110_ERROR_BUS_INIT);
+        chThdSleepMilliseconds(OBDII_PID_ERROR_DELAY);
     }
     else if (_starts_with_hex(buf)) {
     	/* Translate the STN1110 PID response to
@@ -227,7 +233,7 @@ void stn1110_worker(void){
 		size_t bytes_read = serial_getline(&SD2, (uint8_t*)stn_rx_buf, sizeof(stn_rx_buf));
 		if (bytes_read > 0) {
 			log_trace(LOG_PFX "STN1110 raw Rx: %s\r\n", stn_rx_buf);
-            _process_pid_response(stn_rx_buf);
+            _process_stn1110_response(stn_rx_buf);
 		}
 	}
 }
