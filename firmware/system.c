@@ -21,6 +21,8 @@
 
 #include "system.h"
 #include "settings.h"
+#include "ch.h"
+#include "hal.h"
 
 static bool system_initialized = false;
 static bool pid_request_active = false;
@@ -102,4 +104,15 @@ uint32_t mark_stn1110_rx(void)
 
 uint32_t get_stn1110_latency(void){
     return stn1110_latency_ms;
+}
+
+void broadcast_stats(void){
+	CANTxFrame can_stats;
+	can_stats.IDE = CAN_IDE_EXT;
+	can_stats.EID = OBD2CAN_STATS_ID;
+	can_stats.RTR = CAN_RTR_DATA;
+	can_stats.DLC = 3;
+	can_stats.data16[0] = get_stn1110_latency();
+	can_stats.data8[2] = get_stn1110_error();
+    canTransmit(&CAND1, CAN_ANY_MAILBOX, &can_stats, MS2ST(CAN_TRANSMIT_TIMEOUT));
 }

@@ -89,6 +89,7 @@ int main(void) {
 
 	while (true) {
 		chThdSleepMilliseconds(MAIN_THREAD_SLEEP_MS);
+		broadcast_stats();
         //wdgReset(&WDGD1);
 	}
 	return 0;

@@ -51,5 +51,6 @@ void mark_stn1110_tx(void);
 uint32_t mark_stn1110_rx(void);
 uint32_t get_stn1110_latency(void);
 
+void broadcast_stats(void);
 
 #endif /* SYSTEM_H_ */
