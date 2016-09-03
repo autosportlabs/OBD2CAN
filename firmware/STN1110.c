@@ -63,7 +63,7 @@ static void _send_at_param(char *at_cmd, int param)
     chThdSleepMilliseconds(AT_COMMAND_DELAY);
 }
 
-void stn1110_reset(enum obdii_protocol protocol)
+void stn1110_reset(enum obdii_protocol protocol, enum obdii_adaptive_timing adaptive_timing, uint8_t obdii_timeout)
 {
 	set_system_initialized(false);
     log_info(LOG_PFX "Reset STN1110 - protocol %i\r\n", protocol);
@@ -86,6 +86,14 @@ void stn1110_reset(enum obdii_protocol protocol)
     /* switch to the target baud rate */
     _send_at_param("ST SBR ", STN1110_RUNTIME_BAUD_RATE);
     system_serial_init_SD2(STN1110_RUNTIME_BAUD_RATE);
+
+    /* set adaptive timing */
+    _send_at_param("AT AT", adaptive_timing);
+
+    /* set obdii protocol timeout */
+    if (obdii_timeout > 0) {
+        _send_at_param("AT ST ", obdii_timeout);
+    }
 
     /* set protocol */
     _send_at_param("AT SP ", protocol);
@@ -212,7 +220,9 @@ void _process_pid_response(char * buf)
 }
 
 void stn1110_worker(void){
-	stn1110_reset(0);
+    /*reset our chip */
+	stn1110_reset(DEFAULT_OBDII_PROTOCOL, DEFAULT_OBDII_ADAPTIVE_TIMING, DEFAULT_OBDII_TIMEOUT);
+
 	while (true) {
 		size_t bytes_read = serial_getline(&SD2, (uint8_t*)stn_rx_buf, sizeof(stn_rx_buf));
 		if (bytes_read > 0) {

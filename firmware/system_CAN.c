@@ -53,10 +53,10 @@ void system_can_init(void)
 
 static void _process_configure_cmd(CANRxFrame *rx_msg)
 {
-    enum obdii_protocol protocol = obdii_protocol_auto;
+    enum obdii_protocol protocol = DEFAULT_OBDII_PROTOCOL;
     bool should_reset = false;
-    uint8_t adaptive_timing = 1;
-    uint8_t manual_timeout = 100;
+    enum obdii_adaptive_timing adaptive_timing = DEFAULT_OBDII_ADAPTIVE_TIMING;
+    uint8_t obdii_timeout = DEFAULT_OBDII_TIMEOUT;
 
     uint8_t dlc = rx_msg->DLC;
     if (dlc > 1) {
@@ -72,11 +72,11 @@ static void _process_configure_cmd(CANRxFrame *rx_msg)
         adaptive_timing = rx_msg->data8[4];
     }
     if (dlc > 5) {
-        manual_timeout = rx_msg->data8[5];
+        obdii_timeout = rx_msg->data8[5];
     }
 
     if (should_reset) {
-        stn1110_reset(protocol);
+        stn1110_reset(protocol, adaptive_timing, obdii_timeout);
     }
 }
 

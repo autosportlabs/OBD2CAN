@@ -24,9 +24,11 @@
 #include "ch.h"
 #include "hal.h"
 
-void stn1110_reset(uint8_t protocol);
-
-void stn1110_worker(void);
+enum obdii_adaptive_timing {
+    obdii_adaptive_timing_disabled,
+    obdii_adaptive_timing_normal,
+    obdii_adaptive_timing_aggressive
+};
 
 enum obdii_protocol {
     obdii_protocol_auto,
@@ -36,4 +38,14 @@ enum obdii_protocol {
     obdii_protocol_iso14230_4_kwp_5baud,
     obdii_protocol_iso14230_4_fast_init
 };
+
+#define ADAPTIVE_TIMING_DISABLED 0
+#define DEFAULT_OBDII_PROTOCOL obdii_protocol_auto
+#define DEFAULT_OBDII_ADAPTIVE_TIMING obdii_adaptive_timing_normal
+#define DEFAULT_OBDII_TIMEOUT ADAPTIVE_TIMING_DISABLED
+
+void stn1110_reset(enum obdii_protocol protocol, enum obdii_adaptive_timing adaptive_timing, uint8_t obdii_timeout);
+
+void stn1110_worker(void);
+
 #endif /* STN1110_H_ */
