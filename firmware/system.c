@@ -111,7 +111,7 @@ void broadcast_stats(void){
 	can_stats.IDE = CAN_IDE_EXT;
 	can_stats.EID = OBD2CAN_STATS_ID;
 	can_stats.RTR = CAN_RTR_DATA;
-	can_stats.DLC = 3;
+	can_stats.DLC = 8;
 	can_stats.data16[0] = get_stn1110_latency();
 	can_stats.data8[2] = get_stn1110_error();
     canTransmit(&CAND1, CAN_ANY_MAILBOX, &can_stats, MS2ST(CAN_TRANSMIT_TIMEOUT));
