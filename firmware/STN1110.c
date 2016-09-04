@@ -79,7 +79,7 @@ void stn1110_reset(enum obdii_protocol protocol, enum obdii_adaptive_timing adap
     chThdSleepMilliseconds(RESET_DELAY);
     palSetPad(GPIOB, GPIOB_RESET_STN1110);
     chThdSleepMilliseconds(LONG_DELAY);
-    log_info(LOG_PFX "after hard reset\r\n");
+    log_info(LOG_PFX "After hard reset\r\n");
 
     system_serial_init_SD2(STN1110_INITIAL_BAUD_RATE);
 
@@ -109,6 +109,7 @@ void stn1110_reset(enum obdii_protocol protocol, enum obdii_adaptive_timing adap
      */
     set_obdii_request_timeout(OBDII_INITIAL_TIMEOUT);
     set_pid_request_active(false);
+    reset_pid_poll_delay();
     set_system_initialized(true);
 }
 
@@ -143,14 +144,15 @@ void _process_stn1110_response(char * buf)
 
     bool got_obd2_response = false;
     if (strstr(buf, "STOPPED") != 0) {
-        log_info(LOG_PFX "stopped\r\n");
+        log_info(LOG_PFX "Stopped\r\n");
         got_obd2_response = true;
         mark_stn1110_rx();
         set_stn1110_error(STN1110_ERROR_STOPPED);
         chThdSleepMilliseconds(OBDII_PID_ERROR_DELAY);
+        stretch_pid_poll_delay();
     }
     else if (strstr(buf, "NO DATA") != 0) {
-        log_info(LOG_PFX "no data\r\n");
+        log_info(LOG_PFX "No data\r\n");
         got_obd2_response = true;
         mark_stn1110_rx();
         set_stn1110_error(STN1110_ERROR_NO_DATA);
@@ -205,7 +207,7 @@ void _process_stn1110_response(char * buf)
         /* Pause before transmitting the message to limit update rate
          * since the other system may immediately send the next PID request
          */
-        chThdSleepMilliseconds(OBDII_PID_POLL_DELAY);
+        chThdSleepMilliseconds(get_pid_poll_delay());
 
         /* Now send the OBDII response */
         canTransmit(&CAND1, CAN_ANY_MAILBOX, &can_pid_response, MS2ST(CAN_TRANSMIT_TIMEOUT));
@@ -221,7 +223,6 @@ void _process_stn1110_response(char * buf)
 
     if (got_obd2_response) {
         set_pid_request_active(false);
-        log_trace(LOG_PFX "STN1110 response latency: %ims\r\n", get_stn1110_latency());
     }
 }
 

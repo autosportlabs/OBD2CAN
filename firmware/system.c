@@ -23,11 +23,15 @@
 #include "settings.h"
 #include "ch.h"
 #include "hal.h"
+#include "logging.h"
+
+#define _LOG_PFX "SYS:         "
 
 static bool system_initialized = false;
 static bool pid_request_active = false;
 static systime_t pid_request_time = 0;
 static systime_t obdii_request_timeout = OBDII_INITIAL_TIMEOUT;
+static uint32_t pid_poll_delay = OBDII_MIN_PID_POLL_DELAY;
 
 /*metrics information */
 static systime_t stn1110_message_rx_timestamp = 0;
@@ -45,6 +49,34 @@ void set_system_initialized(bool initialized)
 bool get_system_initialized(void)
 {
 	return system_initialized;
+}
+
+uint32_t get_pid_poll_delay(void)
+{
+    return pid_poll_delay;
+}
+
+void set_pid_poll_delay(uint32_t delay)
+{
+    pid_poll_delay = delay;
+}
+
+void stretch_pid_poll_delay(void)
+{
+    if (pid_poll_delay < OBDII_MAX_PID_POLL_DELAY){
+        pid_poll_delay += OBDII_PID_POLL_DELAY_STRETCH;
+        log_info(_LOG_PFX "Stretching PID poll delay by %ims to %ims\r\n", OBDII_PID_POLL_DELAY_STRETCH, pid_poll_delay);
+    }
+    else{
+        log_info(_LOG_PFX "Max PID poll delay reached: %ims\r\n", pid_poll_delay);
+    }
+}
+
+void reset_pid_poll_delay(void)
+{
+    pid_poll_delay = OBDII_MIN_PID_POLL_DELAY;
+    log_info(_LOG_PFX "Reset PID poll delay: %ims\r\n", pid_poll_delay);
+
 }
 
 void set_pid_request_active(bool active)

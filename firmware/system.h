@@ -35,6 +35,12 @@ enum STN1110_error {
 void set_system_initialized(bool initialized);
 bool get_system_initialized(void);
 
+
+uint32_t get_pid_poll_delay(void);
+void set_pid_poll_delay(uint32_t delay);
+void stretch_pid_poll_delay(void);
+void reset_pid_poll_delay(void);
+
 void set_pid_request_active(bool active);
 bool get_pid_request_active(void);
 
