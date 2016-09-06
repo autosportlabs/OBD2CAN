@@ -191,7 +191,10 @@ void _process_stn1110_response(char * buf)
         char *save;
         str_byte = strtok_r(buf, " ", &save);
         size_t count = 0;
-        while(str_byte != NULL && count < MAX_CAN_MESSAGE_SIZE)
+        /* We can at most send 7 bytes in a message, since the first byte
+         * is always the number of bytes following
+         */
+        while(str_byte != NULL && count < MAX_CAN_MESSAGE_SIZE - 1)
         {
             uint8_t byte;
             if (_parse_byte(str_byte, &byte, 16)){
