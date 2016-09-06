@@ -139,6 +139,9 @@ static bool _starts_with_hex(char *buf)
 
 void _process_stn1110_response(char * buf)
 {
+    /* If our received data includes the AT command prompt,
+     * then skip past it.
+     */
     if (buf[0] == '>')
         buf++;
 
@@ -158,8 +161,8 @@ void _process_stn1110_response(char * buf)
         set_stn1110_error(STN1110_ERROR_NO_DATA);
         chThdSleepMilliseconds(OBDII_PID_ERROR_DELAY);
     }
-    else if (strstr(buf, "BUS INIT: ...ERROR") !=0){
-        log_info(LOG_PFX "Bus init error\r\n");
+    else if (strstr(buf, "ERROR") !=0 && strstr(buf, "BUS") != 0){
+        log_info(LOG_PFX "OBDII Bus error\r\n");
         got_obd2_response = true;
         mark_stn1110_rx();
         set_stn1110_error(STN1110_ERROR_BUS_INIT);
