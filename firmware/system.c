@@ -34,12 +34,22 @@ static systime_t obdii_request_timeout = OBDII_INITIAL_TIMEOUT;
 static uint32_t pid_poll_delay = OBDII_MIN_PID_POLL_DELAY;
 
 /*metrics information */
+enum obdii_protocol detected_protocol = obdii_protocol_auto;
 static systime_t stn1110_message_rx_timestamp = 0;
 static systime_t stn1110_message_tx_timestamp = 0;
 static uint32_t stn1110_latency_ms = 0;
 
 /*Error statistics */
 static enum STN1110_error stn1110_last_error = STN1110_ERROR_NONE;
+
+void set_detected_protocol(enum obdii_protocol protocol)
+{
+    detected_protocol = protocol;
+}
+enum obdii_protocol get_detected_protocol(void)
+{
+    return detected_protocol;
+}
 
 void set_system_initialized(bool initialized)
 {
@@ -143,8 +153,9 @@ void broadcast_stats(void){
 	can_stats.IDE = CAN_IDE_EXT;
 	can_stats.EID = OBD2CAN_STATS_ID;
 	can_stats.RTR = CAN_RTR_DATA;
-	can_stats.DLC = 8;
-	can_stats.data16[0] = get_stn1110_latency();
-	can_stats.data8[2] = get_stn1110_error();
+	can_stats.DLC = 4;
+	can_stats.data8[0] = get_detected_protocol();
+    can_stats.data8[1] = get_stn1110_error();
+	can_stats.data16[1] = (uint16_t)get_stn1110_latency();
     canTransmit(&CAND1, CAN_ANY_MAILBOX, &can_stats, MS2ST(CAN_TRANSMIT_TIMEOUT));
 }

@@ -63,6 +63,13 @@ static void _send_at_param(char *at_cmd, int param)
     chThdSleepMilliseconds(AT_COMMAND_DELAY);
 }
 
+static void _send_detect_protocol(void)
+{
+    /* Wait for STN1110 chip to be ready for command */
+    chThdSleepMilliseconds(AT_COMMAND_DELAY);
+    _send_at("AT DP");
+}
+
 void stn1110_reset(enum obdii_protocol protocol, enum obdii_adaptive_timing adaptive_timing, uint8_t obdii_timeout)
 {
 	set_system_initialized(false);
@@ -137,6 +144,26 @@ static bool _starts_with_hex(char *buf)
 }
 
 
+static void _decode_protocol(char * buf)
+{
+    if (strstr(buf, "SAE J1850 PWM") != 0) {
+        set_detected_protocol(obdii_protocol_j1850_pwm);
+        return;
+    }
+    else if (strstr(buf, "SAE J1850 VPW") != 0) {
+        set_detected_protocol(obdii_protocol_j1850_vpw);
+        return;
+    }
+    else if (strstr(buf, "ISO 9141-2") != 0) {
+        set_detected_protocol(obdii_protocol_9141_2);
+        return;
+    }
+    else if (strstr(buf, "ISO 14230-4") != 0) {
+        set_detected_protocol(obdii_protocol_iso14230_4_kwp_5baud);
+        return;
+    }
+}
+
 void _process_stn1110_response(char * buf)
 {
     /* If our received data includes the AT command prompt,
@@ -144,6 +171,12 @@ void _process_stn1110_response(char * buf)
      */
     if (buf[0] == '>')
         buf++;
+
+    /* check if we got a protocol response */
+    if (strstr(buf, "AUTO, ") != 0) {
+        _decode_protocol(buf + 6);
+        return;
+    }
 
     bool got_obd2_response = false;
     if (strstr(buf, "STOPPED") != 0) {
@@ -210,6 +243,13 @@ void _process_stn1110_response(char * buf)
         mark_stn1110_rx();
         log_trace(LOG_PFX "STN1110 latency: %ims\r\n", get_stn1110_latency());
 
+        /* once we successfully get a PID response, ask
+         * for the detected protocol if we still don't know what it is
+         */
+        if (get_detected_protocol() == obdii_protocol_auto){
+            _send_detect_protocol();
+        }
+
         /* Pause before transmitting the message to limit update rate
          * since the other system may immediately send the next PID request
          */
@@ -225,6 +265,9 @@ void _process_stn1110_response(char * buf)
          *set the timeout to the runtime timeout
          */
         set_obdii_request_timeout(OBDII_RUNTIME_TIMEOUT);
+
+        /* We successfully got a PID response */
+        set_stn1110_error(STN1110_ERROR_NONE);
     }
 
     if (got_obd2_response) {

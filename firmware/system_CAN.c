@@ -108,8 +108,10 @@ static void _dispatch_ctrl_rx(CANRxFrame *rx_msg)
 static void _process_pid_request(CANRxFrame *rx_msg)
 {
 
-    if (!get_system_initialized())
+    if (!get_system_initialized()) {
+        log_trace(LOG_PFX "System not initialized, ignoring\r\n");
         return;
+    }
 
     uint8_t data_byte_count = rx_msg->data8[0];
     if (data_byte_count > MAX_CAN_MESSAGE_SIZE - 1) {

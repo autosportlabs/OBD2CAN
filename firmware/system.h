@@ -24,6 +24,7 @@
 #define SYSTEM_H_
 #include <stdbool.h>
 #include "ch.h"
+#include "STN1110.h"
 
 enum STN1110_error {
     STN1110_ERROR_NONE,
@@ -52,6 +53,9 @@ void set_obdii_request_timeout(systime_t timeout);
 
 void set_stn1110_error(enum STN1110_error error);
 enum STN1110_error get_stn1110_error(void);
+
+void set_detected_protocol(enum obdii_protocol);
+enum obdii_protocol get_detected_protocol(void);
 
 void mark_stn1110_tx(void);
 uint32_t mark_stn1110_rx(void);
