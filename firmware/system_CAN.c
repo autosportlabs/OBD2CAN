@@ -29,13 +29,16 @@
 #define LOG_PFX "SYS_CAN:     "
 
 /*
- * 500KBaud, automatic wakeup, Automatic Bus-off management, Transmit FIFO priority
+ * 250KBaud, automatic wakeup, Automatic Bus-off management, Transmit FIFO priority
  */
 /* Note; TS1 should be 13, probably off b/c internal oscillator. check when switching to HSE */
+/* for 500K: BRP: 6, TS1: 9
+ * for 250K: BRP: 12 TS1: 10
+ */
 static const CANConfig cancfg = {
         CAN_MCR_ABOM | CAN_MCR_AWUM | CAN_MCR_TXFP,
   CAN_BTR_SJW(1) | CAN_BTR_TS2(2) |
-  CAN_BTR_TS1(9) | CAN_BTR_BRP(6)
+  CAN_BTR_TS1(10) | CAN_BTR_BRP(12)
 };
 
 void system_can_init(void)
