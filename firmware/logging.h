@@ -33,10 +33,12 @@ enum logging_levels
     logging_level_trace
 };
 
+#define log_info(msg, ...) if (get_logging_level() >= logging_level_info) {chprintf((BaseSequentialStream *)&SD1, "%i ", ST2MS(chVTGetSystemTimeX())); chprintf((BaseSequentialStream *)&SD1, msg, ##__VA_ARGS__);}
+#define log_trace(msg, ...) if (get_logging_level() >= logging_level_trace) {chprintf((BaseSequentialStream *)&SD1, "%i ", ST2MS(chVTGetSystemTimeX())); chprintf((BaseSequentialStream *)&SD1, msg, ##__VA_ARGS__);}
 
-#define log_info(msg, ...) if (get_logging_level() >= logging_level_info) {chprintf((BaseSequentialStream *)&SD1, msg, ##__VA_ARGS__);}
-#define log_trace(msg, ...) if (get_logging_level() >= logging_level_trace) {chprintf((BaseSequentialStream *)&SD1, msg, ##__VA_ARGS__);}
-//#define debug_write
+/* Brief functions */
+#define log_info_b(msg, ...) if (get_logging_level() >= logging_level_info) {chprintf((BaseSequentialStream *)&SD1, msg, ##__VA_ARGS__);}
+#define log_trace_b(msg, ...) if (get_logging_level() >= logging_level_trace) {chprintf((BaseSequentialStream *)&SD1, msg, ##__VA_ARGS__);}
 
 void set_logging_level(enum logging_levels level);
 
@@ -45,6 +47,5 @@ enum logging_levels get_logging_level(void);
 void log_CAN_rx_message(char* log_pfx, CANRxFrame * can_frame);
 
 void log_CAN_tx_message(char *log_pfx, CANTxFrame * can_frame);
-
 
 #endif /* LOGGING_H_ */
