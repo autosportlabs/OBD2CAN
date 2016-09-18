@@ -46,6 +46,8 @@ enum obdii_protocol {
 
 void stn1110_reset(enum obdii_protocol protocol, enum obdii_adaptive_timing adaptive_timing, uint8_t obdii_timeout);
 
+void send_stn1110_pid_request(uint8_t * data, size_t data_len);
+
 void stn1110_worker(void);
 
 #endif /* STN1110_H_ */

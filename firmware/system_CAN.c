@@ -111,37 +111,13 @@ static void _process_pid_request(CANRxFrame *rx_msg)
     if (!get_system_initialized())
         return;
 
-    log_info(LOG_PFX "PID request\r\n");
-
-    /* check if we're in the middle of a PID request,
-     * and if so, did we time out? */
-    if (get_pid_request_active()) {
-        if (is_pid_request_timeout(get_obdii_request_timeout())) {
-            log_info(LOG_PFX "Previous PID request timed out\r\n");
-        }
-        else{
-            log_info(LOG_PFX "Ignoring, Previous PID request active\r\n");
-            return;
-        }
-    }
-    else{
-        log_trace(LOG_PFX  "PID request not active\r\n");
-    }
-
     uint8_t data_byte_count = rx_msg->data8[0];
     if (data_byte_count > MAX_CAN_MESSAGE_SIZE - 1) {
         log_info(LOG_PFX "Invalid PID request; max data bytes %i exceeded %i\r\n", data_byte_count, MAX_CAN_MESSAGE_SIZE - 1);
         return;
     }
-    /* Write the PID request to the STN1110 */
-    size_t i;
-    for (i = 0; i < data_byte_count; i++) {
-        chprintf((BaseSequentialStream *)&SD2, "%02X", rx_msg->data8[i + 1]);
-    }
-    chprintf((BaseSequentialStream *)&SD2, "\r");
-    log_trace(LOG_PFX "Sent to STN1110\r\n");
-    mark_stn1110_tx();
-    set_pid_request_active(true);
+
+    send_stn1110_pid_request(rx_msg->data8 + 1, data_byte_count);
 }
 
 /*

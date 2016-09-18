@@ -232,6 +232,34 @@ void _process_stn1110_response(char * buf)
     }
 }
 
+void send_stn1110_pid_request(uint8_t * data, size_t data_len)
+{
+    /* check if we're in the middle of a PID request,
+     * and if so, did we time out? */
+    if (get_pid_request_active()) {
+        if (is_pid_request_timeout(get_obdii_request_timeout())) {
+            log_info(LOG_PFX "Previous PID request timed out\r\n");
+        }
+        else{
+            log_info(LOG_PFX "Ignoring, Previous PID request active\r\n");
+            return;
+        }
+    }
+    else{
+        log_trace(LOG_PFX  "PID request not active\r\n");
+    }
+
+    /* Write the PID request to the STN1110 */
+    size_t i;
+    for (i = 0; i < data_len; i++) {
+        chprintf((BaseSequentialStream *)&SD2, "%02X", data[i]);
+    }
+    chprintf((BaseSequentialStream *)&SD2, "\r");
+    log_trace(LOG_PFX "Sent to STN1110\r\n");
+    mark_stn1110_tx();
+    set_pid_request_active(true);
+}
+
 void stn1110_worker(void){
     /*reset our chip */
 	stn1110_reset(DEFAULT_OBDII_PROTOCOL, DEFAULT_OBDII_ADAPTIVE_TIMING, DEFAULT_OBDII_TIMEOUT);
