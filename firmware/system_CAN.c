@@ -36,9 +36,9 @@
  * for 250K: BRP: 12 TS1: 10
  */
 static const CANConfig cancfg = {
-        CAN_MCR_ABOM | CAN_MCR_AWUM | CAN_MCR_TXFP | CAN_MCR_NART,
-  CAN_BTR_SJW(1) | CAN_BTR_TS2(2) |
-  CAN_BTR_TS1(10) | CAN_BTR_BRP(12)
+    CAN_MCR_ABOM | CAN_MCR_AWUM | CAN_MCR_TXFP | CAN_MCR_NART,
+    CAN_BTR_SJW(1) | CAN_BTR_TS2(2) |
+    CAN_BTR_TS1(10) | CAN_BTR_BRP(12)
 };
 
 /* Initialize our CAN peripheral */
@@ -96,14 +96,13 @@ static void _dispatch_ctrl_rx(CANRxFrame *rx_msg)
 
     uint8_t ctrl_cmd = rx_msg->data8[0];
     switch(ctrl_cmd) {
-        case CTRL_CMD_CONFIGURE:
-        {
-            _process_configure_cmd(rx_msg);
-            break;
-        }
-        default:
-            log_info(LOG_PFX "Unknown control message command: %i\r\n", ctrl_cmd);
-            break;
+    case CTRL_CMD_CONFIGURE: {
+        _process_configure_cmd(rx_msg);
+        break;
+    }
+    default:
+        log_info(LOG_PFX "Unknown control message command: %i\r\n", ctrl_cmd);
+        break;
     }
 }
 
@@ -133,46 +132,46 @@ void dispatch_can_rx(CANRxFrame *rx_msg)
     uint8_t can_id_type = rx_msg->IDE;
 
     switch (can_id_type) {
-        case CAN_IDE_EXT:
+    case CAN_IDE_EXT:
         /* Process Extended CAN IDs */
-        {
-            switch (rx_msg->EID){
-                case OBD2CAN_CTRL_ID:
-                    _dispatch_ctrl_rx(rx_msg);
-                    break;
-            }
+    {
+        switch (rx_msg->EID) {
+        case OBD2CAN_CTRL_ID:
+            _dispatch_ctrl_rx(rx_msg);
             break;
         }
         break;
+    }
+    break;
 
-        case CAN_IDE_STD:
+    case CAN_IDE_STD:
         /* Process Standard CAN IDs */
-        {
-            switch (rx_msg->SID){
-                case OBDII_PID_REQUEST:
-                    _process_pid_request(rx_msg);
-                    break;
-            }
+    {
+        switch (rx_msg->SID) {
+        case OBDII_PID_REQUEST:
+            _process_pid_request(rx_msg);
+            break;
         }
-        break;
+    }
+    break;
     }
 }
 
 /* Main worker for receiving CAN messages */
 void can_worker(void)
 {
-	  event_listener_t el;
-	  CANRxFrame rx_msg;
-	  chRegSetThreadName("CAN receiver");
-	  chEvtRegister(&CAND1.rxfull_event, &el, 0);
-	  while(!chThdShouldTerminateX()) {
-	    if (chEvtWaitAnyTimeout(ALL_EVENTS, MS2ST(100)) == 0)
-	      continue;
-	    while (canReceive(&CAND1, CAN_ANY_MAILBOX, &rx_msg, TIME_IMMEDIATE) == MSG_OK) {
-	    	/* Process message.*/
-	        log_CAN_rx_message(LOG_PFX, &rx_msg);
-	        dispatch_can_rx(&rx_msg);
-	    }
-	  }
-	  chEvtUnregister(&CAND1.rxfull_event, &el);
+    event_listener_t el;
+    CANRxFrame rx_msg;
+    chRegSetThreadName("CAN receiver");
+    chEvtRegister(&CAND1.rxfull_event, &el, 0);
+    while(!chThdShouldTerminateX()) {
+        if (chEvtWaitAnyTimeout(ALL_EVENTS, MS2ST(100)) == 0)
+            continue;
+        while (canReceive(&CAND1, CAN_ANY_MAILBOX, &rx_msg, TIME_IMMEDIATE) == MSG_OK) {
+            /* Process message.*/
+            log_CAN_rx_message(LOG_PFX, &rx_msg);
+            dispatch_can_rx(&rx_msg);
+        }
+    }
+    chEvtUnregister(&CAND1.rxfull_event, &el);
 }

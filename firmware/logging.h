@@ -26,8 +26,7 @@
 #include "chprintf.h"
 
 
-enum logging_levels
-{
+enum logging_levels {
     logging_level_none,
     logging_level_info,
     logging_level_trace

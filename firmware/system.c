@@ -76,12 +76,12 @@ enum obdii_protocol get_detected_protocol(void)
 /* Get / Set system initialized flag */
 void set_system_initialized(bool initialized)
 {
-	system_initialized = initialized;
+    system_initialized = initialized;
 }
 
 bool get_system_initialized(void)
 {
-	return system_initialized;
+    return system_initialized;
 }
 
 /* Get / Set for delay in-between PID requests */
@@ -101,11 +101,10 @@ void set_pid_poll_delay(uint32_t delay)
  */
 void stretch_pid_poll_delay(void)
 {
-    if (pid_poll_delay < OBDII_MAX_PID_POLL_DELAY){
+    if (pid_poll_delay < OBDII_MAX_PID_POLL_DELAY) {
         pid_poll_delay += OBDII_PID_POLL_DELAY_STRETCH;
         log_info(_LOG_PFX "Stretching PID poll delay by %ims to %ims\r\n", OBDII_PID_POLL_DELAY_STRETCH, pid_poll_delay);
-    }
-    else{
+    } else {
         log_info(_LOG_PFX "Max PID poll delay reached: %ims\r\n", pid_poll_delay);
     }
 }
@@ -121,13 +120,13 @@ void reset_pid_poll_delay(void)
 /* Get / Set PID request currently active flag */
 void set_pid_request_active(bool active)
 {
-	pid_request_active = active;
-	pid_request_time = active ? chVTGetSystemTime() : 0;
+    pid_request_active = active;
+    pid_request_time = active ? chVTGetSystemTime() : 0;
 }
 
 bool get_pid_request_active(void)
 {
-	return pid_request_active;
+    return pid_request_active;
 }
 
 /* Get the last timestamp when a PID was requested. */
@@ -181,20 +180,22 @@ uint32_t mark_stn1110_rx(void)
 }
 
 /* Get the current calculated STN1110 PID request round trip latency */
-uint32_t get_stn1110_latency(void){
+uint32_t get_stn1110_latency(void)
+{
     return stn1110_latency_ms;
 }
 
 /* Broadcast some current stats */
-void broadcast_stats(void){
-	CANTxFrame can_stats;
-	can_stats.IDE = CAN_IDE_EXT;
-	can_stats.EID = OBD2CAN_STATS_ID;
-	can_stats.RTR = CAN_RTR_DATA;
-	can_stats.DLC = 8;
-	can_stats.data8[0] = get_detected_protocol();
+void broadcast_stats(void)
+{
+    CANTxFrame can_stats;
+    can_stats.IDE = CAN_IDE_EXT;
+    can_stats.EID = OBD2CAN_STATS_ID;
+    can_stats.RTR = CAN_RTR_DATA;
+    can_stats.DLC = 8;
+    can_stats.data8[0] = get_detected_protocol();
     can_stats.data8[1] = get_stn1110_error();
-	can_stats.data16[1] = (uint16_t)get_stn1110_latency();
+    can_stats.data16[1] = (uint16_t)get_stn1110_latency();
     canTransmit(&CAND1, CAN_ANY_MAILBOX, &can_stats, MS2ST(CAN_TRANSMIT_TIMEOUT));
 }
 

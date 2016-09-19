@@ -26,18 +26,19 @@
  * buffer buf with a length of buf_len
  * This call blocks until a \r or buf_len is reached.
  */
-size_t serial_getline(SerialDriver *sdp, uint8_t *buf, size_t buf_len) {
-  size_t n;
-  uint8_t c;
+size_t serial_getline(SerialDriver *sdp, uint8_t *buf, size_t buf_len)
+{
+    size_t n;
+    uint8_t c;
 
-  n = 0;
-  do {
-    c = sdGet(sdp);
-    *buf++ = c;
-    n++;
-  } while (c != '\r' && n < buf_len - 1);
-  *buf = 0;
-  return n;
+    n = 0;
+    do {
+        c = sdGet(sdp);
+        *buf++ = c;
+        n++;
+    } while (c != '\r' && n < buf_len - 1);
+    *buf = 0;
+    return n;
 }
 
 /*

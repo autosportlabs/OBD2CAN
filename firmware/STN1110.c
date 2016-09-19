@@ -70,7 +70,7 @@ static void _send_detect_protocol(void)
 /* Perform a hard reset of the STN1110 */
 void stn1110_reset(enum obdii_protocol protocol, enum obdii_adaptive_timing adaptive_timing, uint8_t obdii_timeout)
 {
-	set_system_initialized(false);
+    set_system_initialized(false);
     log_info(LOG_PFX "Reset STN1110 - protocol %i\r\n", protocol);
 
     /* set STN1110 NVM reset to disbled (normal running mode)
@@ -154,16 +154,13 @@ static void _decode_protocol(char * buf)
     if (strstr(buf, "SAE J1850 PWM") != 0) {
         set_detected_protocol(obdii_protocol_j1850_pwm);
         return;
-    }
-    else if (strstr(buf, "SAE J1850 VPW") != 0) {
+    } else if (strstr(buf, "SAE J1850 VPW") != 0) {
         set_detected_protocol(obdii_protocol_j1850_vpw);
         return;
-    }
-    else if (strstr(buf, "ISO 9141-2") != 0) {
+    } else if (strstr(buf, "ISO 9141-2") != 0) {
         set_detected_protocol(obdii_protocol_9141_2);
         return;
-    }
-    else if (strstr(buf, "ISO 14230-4") != 0) {
+    } else if (strstr(buf, "ISO 14230-4") != 0) {
         set_detected_protocol(obdii_protocol_iso14230_4_kwp_5baud);
         return;
     }
@@ -200,8 +197,7 @@ void _process_stn1110_response(char * buf)
     else if (strstr(buf, "NO DATA") != 0) {
         log_info(LOG_PFX "No data\r\n");
         stn1110_result = STN1110_ERROR_NO_DATA;
-    }
-    else if (strstr(buf, "ERROR") !=0 && strstr(buf, "BUS") != 0){
+    } else if (strstr(buf, "ERROR") !=0 && strstr(buf, "BUS") != 0) {
         log_info(LOG_PFX "OBDII Bus error\r\n");
         stn1110_result = STN1110_ERROR_BUS_INIT;
     }
@@ -209,8 +205,7 @@ void _process_stn1110_response(char * buf)
     /* Did we collect an error? */
     if (stn1110_result != STN1110_ERROR_NONE) {
         increment_nodata_error_count();
-        if (get_nodata_error_count() > MAX_NODATA_ERRORS)
-        {
+        if (get_nodata_error_count() > MAX_NODATA_ERRORS) {
             log_info(LOG_PFX "Too many no response errors\r\n");
             /* Nuclear option */
             reset_system();
@@ -223,10 +218,9 @@ void _process_stn1110_response(char * buf)
 
         got_obd2_response = true;
         chThdSleepMilliseconds(OBDII_PID_ERROR_DELAY);
-    }
-    else if (_starts_with_hex(buf)) {
-    	/* Translate the STN1110 PID response to
-    	 * the equivalent CAN message */
+    } else if (_starts_with_hex(buf)) {
+        /* Translate the STN1110 PID response to
+         * the equivalent CAN message */
         log_info(LOG_PFX "PID reply\r\n");
         CANTxFrame can_pid_response;
         can_pid_response.IDE = CAN_IDE_STD;
@@ -250,10 +244,9 @@ void _process_stn1110_response(char * buf)
         /* We can at most send 7 bytes in a message, since the first byte
          * is always the number of bytes following
          */
-        while(str_byte != NULL && count < MAX_CAN_MESSAGE_SIZE - 1)
-        {
+        while(str_byte != NULL && count < MAX_CAN_MESSAGE_SIZE - 1) {
             uint8_t byte;
-            if (_parse_byte(str_byte, &byte, 16)){
+            if (_parse_byte(str_byte, &byte, 16)) {
                 pid_response[count++] = byte;
             }
             str_byte = strtok_r(NULL, " ", &save);
@@ -272,7 +265,7 @@ void _process_stn1110_response(char * buf)
          * The response will be picked up the next time around in this
          * function.
          */
-        if (get_detected_protocol() == obdii_protocol_auto){
+        if (get_detected_protocol() == obdii_protocol_auto) {
             _send_detect_protocol();
         }
 
@@ -322,13 +315,11 @@ void send_stn1110_pid_request(uint8_t * data, size_t data_len)
                 log_info(LOG_PFX "Max timeouts, resetting system\r\n");
                 reset_system();
             }
-        }
-        else{
+        } else {
             log_info(LOG_PFX "Ignoring, Previous PID request active\r\n");
             return;
         }
-    }
-    else{
+    } else {
         log_trace(LOG_PFX  "PID request not active\r\n");
     }
 
@@ -344,22 +335,22 @@ void send_stn1110_pid_request(uint8_t * data, size_t data_len)
 }
 
 
-void stn1110_worker(void){
+void stn1110_worker(void)
+{
     /*reset our chip */
     _stn1110_reset_defaults();
 
-	while (true) {
-	    /* Wait for a line of data, then process it */
-		size_t bytes_read = serial_getline(&SD2, (uint8_t*)stn_rx_buf, sizeof(stn_rx_buf));
-		if (bytes_read > 0) {
-			log_trace(LOG_PFX "STN1110 raw Rx: %s\r\n", stn_rx_buf);
-			if (get_system_initialized()) {
-			    _process_stn1110_response(stn_rx_buf);
-			}
-			else{
-			    log_trace(LOG_PFX "Ignoring data from STN1110: system initializing\r\n");
-			}
-		}
-	}
+    while (true) {
+        /* Wait for a line of data, then process it */
+        size_t bytes_read = serial_getline(&SD2, (uint8_t*)stn_rx_buf, sizeof(stn_rx_buf));
+        if (bytes_read > 0) {
+            log_trace(LOG_PFX "STN1110 raw Rx: %s\r\n", stn_rx_buf);
+            if (get_system_initialized()) {
+                _process_stn1110_response(stn_rx_buf);
+            } else {
+                log_trace(LOG_PFX "Ignoring data from STN1110: system initializing\r\n");
+            }
+        }
+    }
 }
 
