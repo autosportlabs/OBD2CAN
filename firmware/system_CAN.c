@@ -36,7 +36,7 @@
  * for 250K: BRP: 12 TS1: 10
  */
 static const CANConfig cancfg = {
-        CAN_MCR_ABOM | CAN_MCR_AWUM | CAN_MCR_TXFP,
+        CAN_MCR_ABOM | CAN_MCR_AWUM | CAN_MCR_TXFP | CAN_MCR_NART,
   CAN_BTR_SJW(1) | CAN_BTR_TS2(2) |
   CAN_BTR_TS1(10) | CAN_BTR_BRP(12)
 };
