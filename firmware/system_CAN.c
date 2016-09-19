@@ -109,7 +109,7 @@ static void _process_pid_request(CANRxFrame *rx_msg)
 {
 
     if (!get_system_initialized()) {
-        log_trace(LOG_PFX "System not initialized, ignoring\r\n");
+        log_trace(LOG_PFX "Ignoring PID request: system initializing\r\n");
         return;
     }
 

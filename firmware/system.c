@@ -29,6 +29,8 @@
 
 static bool system_initialized = false;
 static bool pid_request_active = false;
+static uint32_t nodata_error_count = 0;
+static uint32_t obdii_timeout_count = 0;
 static systime_t pid_request_time = 0;
 static systime_t obdii_request_timeout = OBDII_INITIAL_TIMEOUT;
 static uint32_t pid_poll_delay = OBDII_MIN_PID_POLL_DELAY;
@@ -153,9 +155,46 @@ void broadcast_stats(void){
 	can_stats.IDE = CAN_IDE_EXT;
 	can_stats.EID = OBD2CAN_STATS_ID;
 	can_stats.RTR = CAN_RTR_DATA;
-	can_stats.DLC = 4;
+	can_stats.DLC = 8;
 	can_stats.data8[0] = get_detected_protocol();
     can_stats.data8[1] = get_stn1110_error();
 	can_stats.data16[1] = (uint16_t)get_stn1110_latency();
     canTransmit(&CAND1, CAN_ANY_MAILBOX, &can_stats, MS2ST(CAN_TRANSMIT_TIMEOUT));
+}
+
+void reset_system(void)
+{
+    log_info(_LOG_PFX "Resetting System\r\n");
+    chThdSleepMilliseconds(SYSTEM_RESET_DELAY);
+    NVIC_SystemReset();
+}
+
+uint32_t get_nodata_error_count(void)
+{
+    return nodata_error_count;
+}
+
+void reset_nodata_error_count(void)
+{
+    nodata_error_count = 0;
+}
+
+void increment_nodata_error_count(void)
+{
+    nodata_error_count++;
+}
+
+uint32_t get_obdii_timeout_count(void)
+{
+    return obdii_timeout_count;
+}
+
+void reset_obdii_timeout_count(void)
+{
+    obdii_timeout_count = 0;
+}
+
+void increment_obdii_timeout_count(void)
+{
+    obdii_timeout_count++;
 }

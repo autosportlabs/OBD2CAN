@@ -117,7 +117,15 @@ void stn1110_reset(enum obdii_protocol protocol, enum obdii_adaptive_timing adap
     set_obdii_request_timeout(OBDII_INITIAL_TIMEOUT);
     set_pid_request_active(false);
     reset_pid_poll_delay();
+    set_detected_protocol(obdii_protocol_auto);
+    reset_nodata_error_count();
+    reset_obdii_timeout_count();
     set_system_initialized(true);
+}
+
+static void _stn1110_reset_defaults(void)
+{
+    stn1110_reset(DEFAULT_OBDII_PROTOCOL, DEFAULT_OBDII_ADAPTIVE_TIMING, DEFAULT_OBDII_TIMEOUT);
 }
 
 static bool _parse_byte(const char *str, uint8_t *val, int base)
@@ -178,27 +186,38 @@ void _process_stn1110_response(char * buf)
         return;
     }
 
+    enum STN1110_error stn1110_result = STN1110_ERROR_NONE;
+
     bool got_obd2_response = false;
     if (strstr(buf, "STOPPED") != 0) {
         log_info(LOG_PFX "Stopped\r\n");
-        got_obd2_response = true;
-        mark_stn1110_rx();
-        set_stn1110_error(STN1110_ERROR_STOPPED);
-        chThdSleepMilliseconds(OBDII_PID_ERROR_DELAY);
+        stn1110_result = STN1110_ERROR_STOPPED;
+        /* When we get the STOPPED message it means we're
+         * asking for data too fast. Stretch out the poll delay.
+         */
         stretch_pid_poll_delay();
     }
     else if (strstr(buf, "NO DATA") != 0) {
         log_info(LOG_PFX "No data\r\n");
-        got_obd2_response = true;
-        mark_stn1110_rx();
-        set_stn1110_error(STN1110_ERROR_NO_DATA);
-        chThdSleepMilliseconds(OBDII_PID_ERROR_DELAY);
+        stn1110_result = STN1110_ERROR_NO_DATA;
     }
     else if (strstr(buf, "ERROR") !=0 && strstr(buf, "BUS") != 0){
         log_info(LOG_PFX "OBDII Bus error\r\n");
-        got_obd2_response = true;
+        stn1110_result = STN1110_ERROR_BUS_INIT;
+    }
+
+    /* Did we collect an error? */
+    if (stn1110_result != STN1110_ERROR_NONE) {
+        increment_nodata_error_count();
+        if (get_nodata_error_count() > MAX_NODATA_ERRORS)
+        {
+            log_info(LOG_PFX "Too many no response errors\r\n");
+            /* Nuclear option */
+            reset_system();
+        }
+        set_stn1110_error(stn1110_result);
         mark_stn1110_rx();
-        set_stn1110_error(STN1110_ERROR_BUS_INIT);
+        got_obd2_response = true;
         chThdSleepMilliseconds(OBDII_PID_ERROR_DELAY);
     }
     else if (_starts_with_hex(buf)) {
@@ -259,6 +278,7 @@ void _process_stn1110_response(char * buf)
         canTransmit(&CAND1, CAN_ANY_MAILBOX, &can_pid_response, MS2ST(CAN_TRANSMIT_TIMEOUT));
         log_CAN_tx_message(LOG_PFX, &can_pid_response);
 
+        /* We got a response to the OBDII query */
         got_obd2_response = true;
 
         /* We've successfully received at least one message;
@@ -268,10 +288,14 @@ void _process_stn1110_response(char * buf)
 
         /* We successfully got a PID response */
         set_stn1110_error(STN1110_ERROR_NONE);
+
+        /* Reset our NODATA error count since we've successfully received a PID response */
+        reset_nodata_error_count();
     }
 
     if (got_obd2_response) {
         set_pid_request_active(false);
+        reset_obdii_timeout_count();
     }
 }
 
@@ -282,6 +306,11 @@ void send_stn1110_pid_request(uint8_t * data, size_t data_len)
     if (get_pid_request_active()) {
         if (is_pid_request_timeout(get_obdii_request_timeout())) {
             log_info(LOG_PFX "Previous PID request timed out\r\n");
+            increment_obdii_timeout_count();
+            if (get_obdii_timeout_count() > MAX_OBDII_TIMEOUTS) {
+                log_info(LOG_PFX "Max timeouts, resetting system\r\n");
+                reset_system();
+            }
         }
         else{
             log_info(LOG_PFX "Ignoring, Previous PID request active\r\n");
@@ -303,15 +332,21 @@ void send_stn1110_pid_request(uint8_t * data, size_t data_len)
     set_pid_request_active(true);
 }
 
+
 void stn1110_worker(void){
     /*reset our chip */
-	stn1110_reset(DEFAULT_OBDII_PROTOCOL, DEFAULT_OBDII_ADAPTIVE_TIMING, DEFAULT_OBDII_TIMEOUT);
+    _stn1110_reset_defaults();
 
 	while (true) {
 		size_t bytes_read = serial_getline(&SD2, (uint8_t*)stn_rx_buf, sizeof(stn_rx_buf));
 		if (bytes_read > 0) {
 			log_trace(LOG_PFX "STN1110 raw Rx: %s\r\n", stn_rx_buf);
-            _process_stn1110_response(stn_rx_buf);
+			if (get_system_initialized()) {
+			    _process_stn1110_response(stn_rx_buf);
+			}
+			else{
+			    log_trace(LOG_PFX "Ignoring data from STN1110: system initializing\r\n");
+			}
 		}
 	}
 }

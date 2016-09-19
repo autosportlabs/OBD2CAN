@@ -33,9 +33,10 @@ enum STN1110_error {
     STN1110_ERROR_BUS_INIT
 };
 
+void reset_system(void);
+
 void set_system_initialized(bool initialized);
 bool get_system_initialized(void);
-
 
 uint32_t get_pid_poll_delay(void);
 void set_pid_poll_delay(uint32_t delay);
@@ -56,6 +57,14 @@ enum STN1110_error get_stn1110_error(void);
 
 void set_detected_protocol(enum obdii_protocol);
 enum obdii_protocol get_detected_protocol(void);
+
+uint32_t get_nodata_error_count(void);
+void reset_nodata_error_count(void);
+void increment_nodata_error_count(void);
+
+uint32_t get_obdii_timeout_count(void);
+void reset_obdii_timeout_count(void);
+void increment_obdii_timeout_count(void);
 
 void mark_stn1110_tx(void);
 uint32_t mark_stn1110_rx(void);
