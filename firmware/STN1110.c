@@ -33,19 +33,14 @@
 
 #define LOG_PFX "SYS_STN1110: "
 
-#define STR_HELPER(x) #x
-#define STR(x) STR_HELPER(x)
-#define STN1110_INITIAL_BAUD_RATE 9600
-#define STN1110_RUNTIME_BAUD_RATE 230400
 #define RESET_DELAY 10
 #define AT_COMMAND_DELAY 100
 #define LONG_DELAY 1000
 
-systime_t stn1110_last_message_at = 0;
-
 /* Receive Buffer for the STN1110 */
 char stn_rx_buf[1024];
 
+/* Send an AT command */
 static void _send_at(char *at_cmd)
 {
     sdWrite(&SD2, (uint8_t*)at_cmd, strlen(at_cmd));
@@ -53,6 +48,7 @@ static void _send_at(char *at_cmd)
     chThdSleepMilliseconds(AT_COMMAND_DELAY);
 }
 
+/* Send an AT command with a single numberic parameter value */
 static void _send_at_param(char *at_cmd, int param)
 {
     sdWrite(&SD2, (uint8_t*)at_cmd, strlen(at_cmd));
@@ -63,6 +59,7 @@ static void _send_at_param(char *at_cmd, int param)
     chThdSleepMilliseconds(AT_COMMAND_DELAY);
 }
 
+/* Send the STN1110 command to report the currently detected OBDII protocol */
 static void _send_detect_protocol(void)
 {
     /* Wait for STN1110 chip to be ready for command */
@@ -70,6 +67,7 @@ static void _send_detect_protocol(void)
     _send_at("AT DP");
 }
 
+/* Perform a hard reset of the STN1110 */
 void stn1110_reset(enum obdii_protocol protocol, enum obdii_adaptive_timing adaptive_timing, uint8_t obdii_timeout)
 {
 	set_system_initialized(false);
@@ -77,6 +75,8 @@ void stn1110_reset(enum obdii_protocol protocol, enum obdii_adaptive_timing adap
 
     /* set STN1110 NVM reset to disbled (normal running mode)
      * Use internall pullup resistor to disable NVM
+     * TODO: this will be changed in hardware to just tie it to 3.3v
+     * since we don't really need processor control of this pin
      * */
     palSetPadMode(GPIOA, GPIOB_RESET_NVM_STN1110, PAL_MODE_INPUT_PULLUP);
 
@@ -110,10 +110,7 @@ void stn1110_reset(enum obdii_protocol protocol, enum obdii_adaptive_timing adap
 
     chThdSleepMilliseconds(LONG_DELAY);
 
-    /* set our initial OBDII timeout
-     * needed when the interface first detects the
-     * protocol
-     */
+    /* Reset our counters and flags */
     set_obdii_request_timeout(OBDII_INITIAL_TIMEOUT);
     set_pid_request_active(false);
     reset_pid_poll_delay();
@@ -186,6 +183,7 @@ void _process_stn1110_response(char * buf)
         return;
     }
 
+    /* So optimistic */
     enum STN1110_error stn1110_result = STN1110_ERROR_NONE;
 
     bool got_obd2_response = false;
@@ -197,6 +195,8 @@ void _process_stn1110_response(char * buf)
          */
         stretch_pid_poll_delay();
     }
+
+    /* Handle a couple of known errors */
     else if (strstr(buf, "NO DATA") != 0) {
         log_info(LOG_PFX "No data\r\n");
         stn1110_result = STN1110_ERROR_NO_DATA;
@@ -215,8 +215,12 @@ void _process_stn1110_response(char * buf)
             /* Nuclear option */
             reset_system();
         }
+        /* Save the current error code */
         set_stn1110_error(stn1110_result);
+
+        /* Mark when we've received the message for our metrics */
         mark_stn1110_rx();
+
         got_obd2_response = true;
         chThdSleepMilliseconds(OBDII_PID_ERROR_DELAY);
     }
@@ -259,11 +263,14 @@ void _process_stn1110_response(char * buf)
         for (i = 0; i < count; i++) {
             can_pid_response.data8[i + 1] = pid_response[i];
         }
+
+        /*mark when we've received the message for our metrics */
         mark_stn1110_rx();
-        log_trace(LOG_PFX "STN1110 latency: %ims\r\n", get_stn1110_latency());
 
         /* once we successfully get a PID response, ask
-         * for the detected protocol if we still don't know what it is
+         * for the detected protocol if we still don't know what it is.
+         * The response will be picked up the next time around in this
+         * function.
          */
         if (get_detected_protocol() == obdii_protocol_auto){
             _send_detect_protocol();
@@ -293,7 +300,11 @@ void _process_stn1110_response(char * buf)
         reset_nodata_error_count();
     }
 
+    /* If we got some sort of response - error or success
+     * then mark ourselves as done.
+     */
     if (got_obd2_response) {
+        log_trace(LOG_PFX "STN1110 latency: %ims\r\n", get_stn1110_latency());
         set_pid_request_active(false);
         reset_obdii_timeout_count();
     }
@@ -321,7 +332,7 @@ void send_stn1110_pid_request(uint8_t * data, size_t data_len)
         log_trace(LOG_PFX  "PID request not active\r\n");
     }
 
-    /* Write the PID request to the STN1110 */
+    /* Write the PID request to the STN1110 as a series of 2 digit hex values*/
     size_t i;
     for (i = 0; i < data_len; i++) {
         chprintf((BaseSequentialStream *)&SD2, "%02X", data[i]);
@@ -338,6 +349,7 @@ void stn1110_worker(void){
     _stn1110_reset_defaults();
 
 	while (true) {
+	    /* Wait for a line of data, then process it */
 		size_t bytes_read = serial_getline(&SD2, (uint8_t*)stn_rx_buf, sizeof(stn_rx_buf));
 		if (bytes_read > 0) {
 			log_trace(LOG_PFX "STN1110 raw Rx: %s\r\n", stn_rx_buf);

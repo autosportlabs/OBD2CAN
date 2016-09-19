@@ -41,6 +41,7 @@ static const CANConfig cancfg = {
   CAN_BTR_TS1(10) | CAN_BTR_BRP(12)
 };
 
+/* Initialize our CAN peripheral */
 void system_can_init(void)
 {
     /* CAN RX.       */
@@ -54,6 +55,7 @@ void system_can_init(void)
     canStart(&CAND1, &cancfg);
 }
 
+/* Process a command and configure message */
 static void _process_configure_cmd(CANRxFrame *rx_msg)
 {
     enum obdii_protocol protocol = DEFAULT_OBDII_PROTOCOL;
@@ -83,7 +85,7 @@ static void _process_configure_cmd(CANRxFrame *rx_msg)
     }
 }
 
-
+/* Process and dispatch an incoming control message */
 static void _dispatch_ctrl_rx(CANRxFrame *rx_msg)
 {
     uint8_t dlc = rx_msg->DLC;
@@ -105,6 +107,7 @@ static void _dispatch_ctrl_rx(CANRxFrame *rx_msg)
     }
 }
 
+/* Process an incoming OBDII PID request */
 static void _process_pid_request(CANRxFrame *rx_msg)
 {
 
@@ -155,6 +158,7 @@ void dispatch_can_rx(CANRxFrame *rx_msg)
     }
 }
 
+/* Main worker for receiving CAN messages */
 void can_worker(void)
 {
 	  event_listener_t el;
