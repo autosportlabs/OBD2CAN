@@ -62,7 +62,7 @@ The control message allows some control over the OBD2CAN module's settings
 CAN ID: 62344
 
 * Byte 0: Sub command.
-..* always 0x01
+ * always 0x01
 
 * Byte 1: Debug level on UART header
  * 0: no logging
