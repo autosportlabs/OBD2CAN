@@ -62,12 +62,12 @@ The control message allows some control over the OBD2CAN module's settings
 CAN ID: 62344
 
 * Byte 0: Sub command.
-* always 0x01
+..* always 0x01
 
 * Byte 1: Debug level on UART header
-** 0: no logging
-** 1: info level logging
-** 2: trace level logging
+..* 0: no logging
+..* 1: info level logging
+..* 2: trace level logging
 
 * Byte 2: Reset STN1110
 ** 0: do not reset
@@ -75,11 +75,11 @@ CAN ID: 62344
 
 * Byte 3: Set OBDII protocol
 Affects AT SP command, see ELM327 manual. If different than the current setting, triggers a reset of the STN1110
-** 0: auto detect (power up default)
-** 1: J1850 PWM
-** 2: J1850 VPW
-** 3: ISO 9141-2
-** 4: ISO 14230-4
+..* 0: auto detect (power up default)
+..* 1: J1850 PWM
+..* 2: J1850 VPW
+..* 3: ISO 9141-2
+..* 4: ISO 14230-4
 
 Diagnostic
 ==========
@@ -88,20 +88,20 @@ The OBD2CAN will broadcast a diagnostic message at 1Hz with the following inform
 CAN ID: 62345
 
 * Byte 0: Detected protocol
-** 0: auto detect (still detecting)
-** 1: J1850 PWM
-** 2: J1850 VPW
-** 3: ISO 9141-2
-** 4: ISO 14230-4
+..* 0: auto detect (still detecting)
+..* 1: J1850 PWM
+..* 2: J1850 VPW
+..* 3: ISO 9141-2
+..* 4: ISO 14230-4
 
 * Byte 1: Last error code
-** 0: STN1110_ERROR_NONE,
-** 1: STN1110_ERROR_STOPPED,
-** 2: STN1110_ERROR_NO_DATA,
-** 3: STN1110_ERROR_BUS_INIT
+..* 0: STN1110_ERROR_NONE,
+..* 1: STN1110_ERROR_STOPPED,
+..* 2: STN1110_ERROR_NO_DATA,
+..* 3: STN1110_ERROR_BUS_INIT
 
 * Byte 2-3: STN1110 request/reply latency, in ms. 
-** Little Endian
+..* Little Endian
 
 
 
