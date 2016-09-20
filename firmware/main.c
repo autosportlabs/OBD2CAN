@@ -72,13 +72,14 @@ static void _start_watchdog(void)
 
 int main(void)
 {
-    /*
+   /*
     * System initializations.
     * - HAL initialization, this also initializes the configured device drivers
     *   and performs the board-specific initializations.
     * - Kernel initialization, the main() function becomes a thread and the
     *   RTOS is active.
     */
+
     /* ChibiOS initialization */
     halInit();
     chSysInit();
@@ -88,7 +89,7 @@ int main(void)
     system_can_init();
     system_serial_init();
 
-    /*
+   /*
     * Creates the processing threads.
     */
     chThdCreateStatic(wa_STN1110_rx, sizeof(wa_STN1110_rx), NORMALPRIO, STN1110_rx, NULL);

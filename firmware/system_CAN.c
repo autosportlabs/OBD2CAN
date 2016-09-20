@@ -30,9 +30,9 @@
 
 /*
  * 250KBaud, automatic wakeup, Automatic Bus-off management, Transmit FIFO priority
- */
-/* Note; TS1 should be 13, probably off b/c internal oscillator. check when switching to HSE */
-/* for 500K: BRP: 6, TS1: 9
+ *
+ * Note; TS1 should be 13, probably off b/c internal oscillator. check when switching to HSE
+ * for 500K: BRP: 6, TS1: 9
  * for 250K: BRP: 12 TS1: 10
  */
 static const CANConfig cancfg = {
@@ -49,9 +49,7 @@ void system_can_init(void)
     /* CAN TX.       */
     palSetPadMode(GPIOA, 12, PAL_STM32_MODE_ALTERNATE | PAL_STM32_ALTERNATE(4));
 
-    /*
-     * Activates the CAN driver
-     */
+    /* Activates the CAN driver */
     canStart(&CAND1, &cancfg);
 }
 

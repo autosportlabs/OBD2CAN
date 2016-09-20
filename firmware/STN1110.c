@@ -71,7 +71,8 @@ static void _send_detect_protocol(void)
 /* Perform a hard reset of the STN1110 */
 static void _hard_reset_stn1110(void)
 {
-    /* set STN1110 NVM reset to disbled (normal running mode)
+    /*
+     * set STN1110 NVM reset to disbled (normal running mode)
      * Use internall pullup resistor to disable NVM
      * TODO: this will be changed in hardware to just tie it to 3.3v
      * since we don't really need processor control of this pin
@@ -179,7 +180,8 @@ static void _translate_pid_response(uint8_t * can_pid_response, char * buf)
     char *save;
     str_byte = strtok_r(buf, " ", &save);
     size_t count = 0;
-    /* We can at most send 7 bytes in a message, since the first byte
+    /*
+     * We can at most send 7 bytes in a message, since the first byte
      * is always the number of bytes following
      */
     while(str_byte != NULL && count < MAX_CAN_MESSAGE_SIZE - 1) {
@@ -322,7 +324,8 @@ void _process_stn1110_response(char * buf)
         set_stn1110_error(STN1110_ERROR_NONE);
         reset_nodata_error_count();
     }
-    /* If we got some sort of response - error or success
+    /*
+     * If we got some sort of response - error or success
      * then mark ourselves as done.
      */
     if (got_obd2_response) {
@@ -334,7 +337,8 @@ void _process_stn1110_response(char * buf)
 
 void send_stn1110_pid_request(uint8_t * data, size_t data_len)
 {
-    /* check if we're in the middle of a PID request,
+    /*
+     * check if we're in the middle of a PID request,
      * and if so, did we time out? */
     if (get_pid_request_active()) {
         if (is_pid_request_timeout(get_obdii_request_timeout())) {
