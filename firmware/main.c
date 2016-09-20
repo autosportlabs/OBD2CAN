@@ -32,6 +32,7 @@
 #define STN1110_THREAD_STACK 512
 #define MAIN_THREAD_SLEEP_MS 1000
 #define WATCHDOG_TIMEOUT 1000
+#define WATCHDOG_ENABLED false
 
 /*
  * CAN receiver thread.
@@ -59,6 +60,9 @@ static THD_FUNCTION(STN1110_rx, arg)
  */
 static void _start_watchdog(void)
 {
+    if (! WATCHDOG_ENABLED)
+        return;
+
     const WDGConfig wdgcfg = {
         STM32_IWDG_PR_4,
         STM32_IWDG_RL(WATCHDOG_TIMEOUT)
@@ -78,7 +82,7 @@ int main(void)
     /* ChibiOS initialization */
     halInit();
     chSysInit();
-    //_start_watchdog();
+    _start_watchdog();
 
     /* Application specific initialization */
     system_can_init();
@@ -93,7 +97,9 @@ int main(void)
     while (true) {
         chThdSleepMilliseconds(MAIN_THREAD_SLEEP_MS);
         broadcast_stats();
-        //wdgReset(&WDGD1);
+        if (WATCHDOG_ENABLED)
+            wdgReset(&WDGD1);
+        check_system_state();
     }
     return 0;
 }
