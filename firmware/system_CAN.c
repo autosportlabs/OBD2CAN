@@ -64,16 +64,16 @@ static void _process_configure_cmd(CANRxFrame *rx_msg)
     uint8_t obdii_timeout = DEFAULT_OBDII_TIMEOUT;
 
     switch (rx_msg->DLC) {
-        case 6:
-            obdii_timeout = rx_msg->data8[5];
-        case 5:
-            adaptive_timing = rx_msg->data8[4];
-        case 4:
-            protocol = rx_msg->data8[3];
-        case 3:
-            should_reset = rx_msg->data8[2] != 0;
-        case 2:
-            set_logging_level((enum logging_levels)rx_msg->data8[1]);
+    case 6:
+        obdii_timeout = rx_msg->data8[5];
+    case 5:
+        adaptive_timing = rx_msg->data8[4];
+    case 4:
+        protocol = rx_msg->data8[3];
+    case 3:
+        should_reset = rx_msg->data8[2] != 0;
+    case 2:
+        set_logging_level((enum logging_levels)rx_msg->data8[1]);
     }
 
     if (should_reset) {
@@ -178,8 +178,7 @@ void prepare_can_tx_message(CANTxFrame *tx_frame, uint8_t can_id_type, uint32_t 
     tx_frame->IDE = can_id_type;
     if (can_id_type == CAN_IDE_EXT) {
         tx_frame->EID = can_id;
-    }
-    else {
+    } else {
         tx_frame->SID = can_id;
     }
     tx_frame->RTR = CAN_RTR_DATA;
