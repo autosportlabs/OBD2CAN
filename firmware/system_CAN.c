@@ -63,21 +63,17 @@ static void _process_configure_cmd(CANRxFrame *rx_msg)
     enum obdii_adaptive_timing adaptive_timing = DEFAULT_OBDII_ADAPTIVE_TIMING;
     uint8_t obdii_timeout = DEFAULT_OBDII_TIMEOUT;
 
-    uint8_t dlc = rx_msg->DLC;
-    if (dlc > 1) {
-        set_logging_level((enum logging_levels)rx_msg->data8[1]);
-    }
-    if (dlc > 2) {
-        should_reset = rx_msg->data8[2] != 0;
-    }
-    if (dlc > 3) {
-        protocol = rx_msg->data8[3];
-    }
-    if (dlc > 4) {
-        adaptive_timing = rx_msg->data8[4];
-    }
-    if (dlc > 5) {
-        obdii_timeout = rx_msg->data8[5];
+    switch (rx_msg->DLC) {
+        case 6:
+            obdii_timeout = rx_msg->data8[5];
+        case 5:
+            adaptive_timing = rx_msg->data8[4];
+        case 4:
+            protocol = rx_msg->data8[3];
+        case 3:
+            should_reset = rx_msg->data8[2] != 0;
+        case 2:
+            set_logging_level((enum logging_levels)rx_msg->data8[1]);
     }
 
     if (should_reset) {

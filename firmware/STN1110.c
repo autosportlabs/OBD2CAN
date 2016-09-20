@@ -38,7 +38,7 @@
 #define LONG_DELAY 1000
 
 /* Receive Buffer for the STN1110 */
-char stn_rx_buf[1024];
+static char stn_rx_buf[1024];
 
 /* Send an AT command */
 static void _send_at(char *at_cmd)
@@ -52,7 +52,7 @@ static void _send_at(char *at_cmd)
 static void _send_at_param(char *at_cmd, int param)
 {
     sdWrite(&SD2, (uint8_t*)at_cmd, strlen(at_cmd));
-    char param_str[20];
+    char param_str[16];
     modp_itoa10(param, param_str);
     sdWrite(&SD2, (uint8_t*)param_str, strlen(param_str));
     sdWrite(&SD2, (uint8_t*)"\r", 1);
@@ -168,6 +168,9 @@ static void _decode_protocol(char * buf)
 
 void _process_stn1110_response(char * buf)
 {
+    if (buf == NULL)
+        return;
+
     /* If our received data includes the AT command prompt,
      * then skip past it.
      */
@@ -187,7 +190,8 @@ void _process_stn1110_response(char * buf)
     if (strstr(buf, "STOPPED") != 0) {
         log_info(LOG_PFX "Stopped\r\n");
         stn1110_result = STN1110_ERROR_STOPPED;
-        /* When we get the STOPPED message it means we're
+        /*
+         * When we get the STOPPED message it means we're
          * asking for data too fast. Stretch out the poll delay.
          */
         stretch_pid_poll_delay();
