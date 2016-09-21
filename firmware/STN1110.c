@@ -219,6 +219,11 @@ enum STN1110_error _check_stn1110_error_response(const char *buf)
         log_info(_LOG_PFX "No data\r\n");
         stn1110_result = STN1110_ERROR_NO_DATA;
     } else if (strstr(buf, "ERROR") !=0 && strstr(buf, "BUS") != 0) {
+    	/*
+    	 * The STN1110 has a a couple of different error codes that
+    	 * have the words ERROR and BUS in it. this check handles both
+    	 * conditions.
+    	 */
         log_info(_LOG_PFX "OBDII Bus error\r\n");
         stn1110_result = STN1110_ERROR_BUS_INIT;
     }
