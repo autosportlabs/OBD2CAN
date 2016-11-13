@@ -103,6 +103,14 @@ CAN ID: 62345
 * Byte 2-3: STN1110 request/reply latency, in ms. 
  * Little Endian
 
+* Byte 4: reserved
+
+* Byte 5: firmware major version
+
+* Byte 6: firmware minor version
+
+* Byte 7: firmware patch version
+
 
 
 

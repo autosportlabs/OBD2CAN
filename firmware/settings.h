@@ -22,6 +22,10 @@
 #ifndef SETTINGS_H_
 #define SETTINGS_H_
 
+#define MAJOR_VER 1
+#define MINOR_VER 0
+#define PATCH_VER 0
+
 /* The CAN IDs and control codes
  * for our control and diagnostic messages */
 #define OBD2CAN_CTRL_ID 62344

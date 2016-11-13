@@ -193,9 +193,22 @@ void broadcast_stats(void)
     can_stats.EID = OBD2CAN_STATS_ID;
     can_stats.RTR = CAN_RTR_DATA;
     can_stats.DLC = 8;
+    /* byte 0 - detected protocol */
     can_stats.data8[0] = get_detected_protocol();
+
+    /* byte 1 - current STN1110 error code */
     can_stats.data8[1] = get_stn1110_error();
+
+    /* byte 2-3 - stn1100 PID request latency */
     can_stats.data16[1] = (uint16_t)get_stn1110_latency();
+
+    /* byte 4 - reserved */
+    can_stats.data8[4] = 0;
+
+    /* byte 5-7 send version information */
+    can_stats.data8[5] = MAJOR_VER;
+    can_stats.data8[6] = MINOR_VER;
+    can_stats.data8[7] = PATCH_VER;
     canTransmit(&CAND1, CAN_ANY_MAILBOX, &can_stats, MS2ST(CAN_TRANSMIT_TIMEOUT));
 }
 
