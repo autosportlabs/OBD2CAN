@@ -34,9 +34,9 @@
 
 #define _LOG_PFX "SYS_STN1110: "
 
-#define RESET_DELAY 10
-#define AT_COMMAND_DELAY 100
-#define LONG_DELAY 1000
+#define RESET_DELAY_MS 10
+#define AT_COMMAND_DELAY_MS 100
+#define LONG_DELAY_MS 1000
 
 /* Receive Buffer for the STN1110 */
 static char stn_rx_buf[1024];
@@ -46,7 +46,7 @@ static void _send_at(char *at_cmd)
 {
     sdWrite(&SD2, (uint8_t*)at_cmd, strlen(at_cmd));
     sdWrite(&SD2, (uint8_t*)"\r", 1);
-    chThdSleepMilliseconds(AT_COMMAND_DELAY);
+    chThdSleepMilliseconds(AT_COMMAND_DELAY_MS);
 }
 
 /* Send an AT command with a single numberic parameter value */
@@ -57,14 +57,14 @@ static void _send_at_param(char *at_cmd, int param)
     modp_itoa10(param, param_str);
     sdWrite(&SD2, (uint8_t*)param_str, strlen(param_str));
     sdWrite(&SD2, (uint8_t*)"\r", 1);
-    chThdSleepMilliseconds(AT_COMMAND_DELAY);
+    chThdSleepMilliseconds(AT_COMMAND_DELAY_MS);
 }
 
 /* Send the STN1110 command to report the currently detected OBDII protocol */
 static void _send_detect_protocol(void)
 {
     /* Wait for STN1110 chip to be ready for command */
-    chThdSleepMilliseconds(AT_COMMAND_DELAY);
+    chThdSleepMilliseconds(AT_COMMAND_DELAY_MS);
     _send_at("AT DP");
 }
 
@@ -82,9 +82,9 @@ static void _hard_reset_stn1110(void)
     /* Toggle hard reset Line */
     palSetPadMode(GPIOB, GPIOB_RESET_STN1110, PAL_MODE_OUTPUT_PUSHPULL);
     palClearPad(GPIOB, GPIOB_RESET_STN1110);
-    chThdSleepMilliseconds(RESET_DELAY);
+    chThdSleepMilliseconds(RESET_DELAY_MS);
     palSetPad(GPIOB, GPIOB_RESET_STN1110);
-    chThdSleepMilliseconds(LONG_DELAY);
+    chThdSleepMilliseconds(LONG_DELAY_MS);
     log_info(_LOG_PFX "Hard reset STN1110\r\n");
 }
 
@@ -116,7 +116,7 @@ void stn1110_reset(enum obdii_protocol protocol, enum obdii_adaptive_timing adap
     /* Disable echo */
     _send_at("AT E0");
 
-    chThdSleepMilliseconds(LONG_DELAY);
+    chThdSleepMilliseconds(LONG_DELAY_MS);
 
     /* Reset our counters and flags */
     set_obdii_request_timeout(OBDII_INITIAL_TIMEOUT);
