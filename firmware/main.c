@@ -28,52 +28,79 @@
 #include "system_serial.h"
 #include "system_CAN.h"
 
+#define CAN_THREAD_STACK 512
+#define STN1110_THREAD_STACK 512
+#define MAIN_THREAD_SLEEP_MS 1000
+#define WATCHDOG_TIMEOUT 1000
+#define WATCHDOG_ENABLED false
+
 /*
  * CAN receiver thread.
  */
-static THD_WORKING_AREA(can_rx_wa, 512);
-static THD_FUNCTION(can_rx, arg) {
-	(void)arg;
-	chRegSetThreadName("CAN_worker");
-	can_worker();
+static THD_WORKING_AREA(can_rx_wa, CAN_THREAD_STACK);
+static THD_FUNCTION(can_rx, arg)
+{
+    (void)arg;
+    chRegSetThreadName("CAN_worker");
+    can_worker();
 }
 
 /*
  * STN1110 receiver thread.
  */
-static THD_WORKING_AREA(wa_STN1110_rx, 512);
-static THD_FUNCTION(STN1110_rx, arg) {
-	(void)arg;
-	chRegSetThreadName("STN1110_worker");
-	stn1110_worker();
+static THD_WORKING_AREA(wa_STN1110_rx, STN1110_THREAD_STACK);
+static THD_FUNCTION(STN1110_rx, arg)
+{
+    (void)arg;
+    chRegSetThreadName("STN1110_worker");
+    stn1110_worker();
 }
 
-int main(void) {
-	/*
-	* System initializations.
-	* - HAL initialization, this also initializes the configured device drivers
-	*   and performs the board-specific initializations.
-	* - Kernel initialization, the main() function becomes a thread and the
-	*   RTOS is active.
-	*/
-	/* ChibiOS initialization */
-	halInit();
-	chSysInit();
+/* Watchdog configuration and initialization
+ */
+static void _start_watchdog(void)
+{
+    if (! WATCHDOG_ENABLED)
+        return;
 
-	/* Application specific initialization */
-	system_can_init();
-	system_serial_init();
+    const WDGConfig wdgcfg = {
+        STM32_IWDG_PR_4,
+        STM32_IWDG_RL(WATCHDOG_TIMEOUT)
+    };
+    wdgStart(&WDGD1, &wdgcfg);
+}
 
-	/*
-	* Creates the processing threads.
-	*/
-	chThdCreateStatic(wa_STN1110_rx, sizeof(wa_STN1110_rx), NORMALPRIO, STN1110_rx, NULL);
-	chThdCreateStatic(can_rx_wa, sizeof(can_rx_wa), NORMALPRIO + 7, can_rx, NULL);
+int main(void)
+{
+   /*
+    * System initializations.
+    * - HAL initialization, this also initializes the configured device drivers
+    *   and performs the board-specific initializations.
+    * - Kernel initialization, the main() function becomes a thread and the
+    *   RTOS is active.
+    */
 
-	/*
-	* Main thread sleeps.
-	*/
-	while (true) {
-		chThdSleepMilliseconds(1000);
-	}
+    /* ChibiOS initialization */
+    halInit();
+    chSysInit();
+    _start_watchdog();
+
+    /* Application specific initialization */
+    system_can_init();
+    system_serial_init();
+
+   /*
+    * Creates the processing threads.
+    */
+    chThdCreateStatic(wa_STN1110_rx, sizeof(wa_STN1110_rx), NORMALPRIO, STN1110_rx, NULL);
+    chThdCreateStatic(can_rx_wa, sizeof(can_rx_wa), NORMALPRIO, can_rx, NULL);
+
+    while (true) {
+        chThdSleepMilliseconds(MAIN_THREAD_SLEEP_MS);
+        broadcast_stats();
+        if (WATCHDOG_ENABLED)
+            wdgReset(&WDGD1);
+        check_system_state();
+    }
+    return 0;
 }

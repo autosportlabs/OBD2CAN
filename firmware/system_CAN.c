@@ -26,20 +26,22 @@
 #include "system.h"
 #include "STN1110.h"
 
-#define LOG_PFX "SYS_CAN:     "
-
-#define MAX_PID_DATA_BYTES 7
+#define _LOG_PFX "SYS_CAN:     "
 
 /*
- * 500KBaud, automatic wakeup, Automatic Bus-off management, Transmit FIFO priority
+ * 250KBaud, automatic wakeup, Automatic Bus-off management, Transmit FIFO priority
+ *
+ * Note; TS1 should be 13, probably off b/c internal oscillator. check when switching to HSE
+ * for 500K: BRP: 6, TS1: 9
+ * for 250K: BRP: 12 TS1: 10
  */
-/* Note; TS1 should be 13, probably off b/c internal oscillator. check when switching to HSE */
 static const CANConfig cancfg = {
-        CAN_MCR_ABOM | CAN_MCR_AWUM | CAN_MCR_TXFP,
-  CAN_BTR_SJW(1) | CAN_BTR_TS2(2) |
-  CAN_BTR_TS1(9) | CAN_BTR_BRP(6)
+    CAN_MCR_ABOM | CAN_MCR_AWUM | CAN_MCR_TXFP | CAN_MCR_NART,
+    CAN_BTR_SJW(1) | CAN_BTR_TS2(2) |
+    CAN_BTR_TS1(10) | CAN_BTR_BRP(12)
 };
 
+/* Initialize our CAN peripheral */
 void system_can_init(void)
 {
     /* CAN RX.       */
@@ -47,73 +49,73 @@ void system_can_init(void)
     /* CAN TX.       */
     palSetPadMode(GPIOA, 12, PAL_STM32_MODE_ALTERNATE | PAL_STM32_ALTERNATE(4));
 
-    /*
-     * Activates the CAN driver
-     */
+    /* Activates the CAN driver */
     canStart(&CAND1, &cancfg);
 }
 
+/* Process a command and configure message */
+static void _process_configure_cmd(CANRxFrame *rx_msg)
+{
+    enum obdii_protocol protocol = DEFAULT_OBDII_PROTOCOL;
+    bool should_reset = false;
+    enum obdii_adaptive_timing adaptive_timing = DEFAULT_OBDII_ADAPTIVE_TIMING;
+    uint8_t obdii_timeout = DEFAULT_OBDII_TIMEOUT;
+
+    switch (rx_msg->DLC) {
+    case 6:
+        obdii_timeout = rx_msg->data8[5];
+    case 5:
+        adaptive_timing = rx_msg->data8[4];
+    case 4:
+        protocol = rx_msg->data8[3];
+    case 3:
+        should_reset = rx_msg->data8[2] != 0;
+    case 2:
+        set_logging_level((enum logging_levels)rx_msg->data8[1]);
+    }
+
+    if (should_reset) {
+        stn1110_reset(protocol, adaptive_timing, obdii_timeout);
+    }
+}
+
+/* Process and dispatch an incoming control message */
 static void _dispatch_ctrl_rx(CANRxFrame *rx_msg)
 {
     uint8_t dlc = rx_msg->DLC;
     if (dlc < 2) {
-        log_info(LOG_PFX "Invalid control msg length: %i\r\n", dlc);
+        log_info(_LOG_PFX "Invalid control msg length: %i\r\n", dlc);
         return;
     }
 
     uint8_t ctrl_cmd = rx_msg->data8[0];
     switch(ctrl_cmd) {
-        case CTRL_CMD_RESET_STN1110:
-        {
-            uint8_t protocol = rx_msg->data8[1];
-            stn1110_reset(protocol);
-            break;
-        }
-        default:
-            log_info(LOG_PFX "Unknown control message command: %i\r\n", ctrl_cmd);
-            break;
+    case CTRL_CMD_CONFIGURE: {
+        _process_configure_cmd(rx_msg);
+        break;
+    }
+    default:
+        log_info(_LOG_PFX "Unknown control message command: %i\r\n", ctrl_cmd);
+        break;
     }
 }
 
-static void _log_CAN_rx_message(CANRxFrame * can_frame)
-{
-    if (get_logging_level() < logging_level_trace)
-        return;
-
-    uint32_t CAN_id = can_frame->IDE == CAN_IDE_EXT ? can_frame->EID : can_frame->SID;
-    log_trace(LOG_PFX "CAN Rx ID(%i): ", CAN_id);
-    size_t i;
-    for (i = 0; i < can_frame->DLC; i++)
-    {
-        log_trace("%02X ", can_frame->data8[i]);
-    }
-    log_trace("\r\n");
-}
-
-
+/* Process an incoming OBDII PID request */
 static void _process_pid_request(CANRxFrame *rx_msg)
 {
-    log_info(LOG_PFX "PID request\r\n");
 
-    if (!get_system_initialized())
-        return;
-
-    if (get_pid_request_active()){
-        log_info(LOG_PFX "ignoring, pid request active\r\n");
+    if (!get_system_initialized()) {
+        log_trace(_LOG_PFX "Ignoring PID request: system initializing\r\n");
         return;
     }
 
     uint8_t data_byte_count = rx_msg->data8[0];
-    if (data_byte_count > MAX_PID_DATA_BYTES) {
-        log_info(LOG_PFX "Invalid PID request; max data bytes %i exceeded %i\r\n", data_byte_count, MAX_PID_DATA_BYTES);
+    if (data_byte_count > MAX_CAN_MESSAGE_SIZE - 1) {
+        log_info(_LOG_PFX "Invalid PID request; max data bytes %i exceeded %i\r\n", data_byte_count, MAX_CAN_MESSAGE_SIZE - 1);
         return;
     }
-    size_t i;
-    for (i = 0; i < data_byte_count; i++) {
-        chprintf((BaseSequentialStream *)&SD2, "%02X", rx_msg->data8[i + 1]);
-    }
-    chprintf((BaseSequentialStream *)&SD2, "\r");
-    set_pid_request_active(true);
+
+    send_stn1110_pid_request(rx_msg->data8 + 1, data_byte_count);
 }
 
 /*
@@ -121,51 +123,71 @@ static void _process_pid_request(CANRxFrame *rx_msg)
  */
 void dispatch_can_rx(CANRxFrame *rx_msg)
 {
-    /* we are only handling extended IDs */
-
     uint8_t can_id_type = rx_msg->IDE;
 
     switch (can_id_type) {
-        case CAN_IDE_EXT:
+    case CAN_IDE_EXT:
         /* Process Extended CAN IDs */
-        {
-            switch (rx_msg->EID){
-                case OBD2CAN_CTRL_ID:
-                    _dispatch_ctrl_rx(rx_msg);
-                    break;
-            }
+    {
+        switch (rx_msg->EID) {
+        case OBD2CAN_CTRL_ID:
+            _dispatch_ctrl_rx(rx_msg);
             break;
         }
         break;
+    }
+    break;
 
-        case CAN_IDE_STD:
+    case CAN_IDE_STD:
         /* Process Standard CAN IDs */
-        {
-            switch (rx_msg->SID){
-                case OBDII_PID_REQUEST:
-                    _process_pid_request(rx_msg);
-                    break;
-            }
+    {
+        switch (rx_msg->SID) {
+        case OBDII_PID_REQUEST:
+            _process_pid_request(rx_msg);
+            break;
         }
-        break;
+    }
+    break;
     }
 }
 
+/* Main worker for receiving CAN messages */
 void can_worker(void)
 {
-	  event_listener_t el;
-	  CANRxFrame rx_msg;
-	  chRegSetThreadName("CAN receiver");
-	  chEvtRegister(&CAND1.rxfull_event, &el, 0);
-	  while(!chThdShouldTerminateX()) {
-	    if (chEvtWaitAnyTimeout(ALL_EVENTS, MS2ST(100)) == 0)
-	      continue;
-	    while (canReceive(&CAND1, CAN_ANY_MAILBOX, &rx_msg, TIME_IMMEDIATE) == MSG_OK) {
-	      /* Process message.*/
-	        log_info(LOG_PFX "CAN Rx\r\n");
-	        _log_CAN_rx_message(&rx_msg);
-	        dispatch_can_rx(&rx_msg);
-	    }
-	  }
-	  chEvtUnregister(&CAND1.rxfull_event, &el);
+    event_listener_t el;
+    CANRxFrame rx_msg;
+    chRegSetThreadName("CAN receiver");
+    chEvtRegister(&CAND1.rxfull_event, &el, 0);
+    while(!chThdShouldTerminateX()) {
+        if (chEvtWaitAnyTimeout(ALL_EVENTS, MS2ST(100)) == 0)
+            continue;
+        while (canReceive(&CAND1, CAN_ANY_MAILBOX, &rx_msg, TIME_IMMEDIATE) == MSG_OK) {
+            /* Process message.*/
+            log_CAN_rx_message(_LOG_PFX, &rx_msg);
+            dispatch_can_rx(&rx_msg);
+        }
+    }
+    chEvtUnregister(&CAND1.rxfull_event, &el);
+}
+
+/* Prepare a CAN message with the specified CAN ID and type */
+void prepare_can_tx_message(CANTxFrame *tx_frame, uint8_t can_id_type, uint32_t can_id)
+{
+    tx_frame->IDE = can_id_type;
+    if (can_id_type == CAN_IDE_EXT) {
+        tx_frame->EID = can_id;
+    } else {
+        tx_frame->SID = can_id;
+    }
+    tx_frame->RTR = CAN_RTR_DATA;
+    tx_frame->DLC = 8;
+    tx_frame->data8[0] = 0x55;
+    tx_frame->data8[1] = 0x55;
+    tx_frame->data8[2] = 0x55;
+    tx_frame->data8[3] = 0x55;
+    tx_frame->data8[4] = 0x55;
+    tx_frame->data8[5] = 0x55;
+    tx_frame->data8[6] = 0x55;
+    tx_frame->data8[7] = 0x55;
+
 }
