@@ -28,17 +28,19 @@
  */
 size_t serial_getline(SerialDriver *sdp, uint8_t *buf, size_t buf_len)
 {
-    size_t n;
-    uint8_t c;
+    if (!buf || !buf_len)
+        return 0;
 
-    n = 0;
-    do {
-        c = sdGet(sdp);
-        *buf++ = c;
-        n++;
-    } while (c != '\r' && n < buf_len - 1);
-    *buf = 0;
-    return n;
+    size_t read = 0;
+    --buf_len; /* account for NULL terminator */
+    while (read < buf_len) {
+        ++read;
+        *buf++ = sdGet(sdp);
+        if ('\r' == buf[-1])
+            break;
+    }
+    *buf = '\0';
+    return read;
 }
 
 /*

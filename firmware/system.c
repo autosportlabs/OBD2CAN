@@ -24,6 +24,7 @@
 #include "ch.h"
 #include "hal.h"
 #include "logging.h"
+#include "system_CAN.h"
 
 #define _LOG_PFX "SYS:         "
 
@@ -189,11 +190,7 @@ uint32_t get_stn1110_latency(void)
 void broadcast_stats(void)
 {
     CANTxFrame can_stats;
-    can_stats.IDE = CAN_IDE_EXT;
-    can_stats.EID = OBD2CAN_STATS_ID;
-    can_stats.RTR = CAN_RTR_DATA;
-    can_stats.DLC = 8;
-    /* byte 0 - detected protocol */
+    prepare_can_tx_message(&can_stats, CAN_IDE_EXT, OBD2CAN_STATS_ID);
     can_stats.data8[0] = get_detected_protocol();
 
     /* byte 1 - current STN1110 error code */
@@ -255,3 +252,14 @@ void increment_obdii_timeout_count(void)
 {
     obdii_timeout_count++;
 }
+
+/* Check if we're in a state where we need to reset the system */
+void check_system_state(void)
+{
+    if (get_nodata_error_count() > MAX_NODATA_ERRORS) {
+        log_info(_LOG_PFX "Too many no response errors\r\n");
+        /* Nuclear option */
+        reset_system();
+    }
+}
+

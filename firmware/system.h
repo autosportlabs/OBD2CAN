@@ -72,4 +72,6 @@ uint32_t get_stn1110_latency(void);
 
 void broadcast_stats(void);
 
+void check_system_state(void);
+
 #endif /* SYSTEM_H_ */
