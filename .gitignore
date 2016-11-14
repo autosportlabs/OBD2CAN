@@ -31,7 +31,6 @@ main.elf
 main.hex
 main.map
 main.sym
-openocd.cfg
 openocd.log
 test/rcpsim
 test/rcptest
