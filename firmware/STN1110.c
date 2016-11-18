@@ -282,13 +282,13 @@ void _process_stn1110_response(char * buf)
     if (buf == NULL)
         return;
 
-    /* Skip past AT command prompt, if present */
-    if (buf[0] == '>')
-        buf++;
-
     /* check if we got a protocol response */
     if (_check_protocol_response(buf))
         return;
+
+    /* Skip past AT command prompt, if present */
+    if (buf[0] == '>')
+        buf++;
 
     bool got_obd2_response = false;
     enum STN1110_error stn1110_result = _check_stn1110_error_response(buf);
@@ -366,7 +366,10 @@ void send_stn1110_pid_request(uint8_t * data, size_t data_len)
     for (i = 0; i < data_len; i++) {
         chprintf((BaseSequentialStream *)&SD2, "%02X", data[i]);
     }
-    chprintf((BaseSequentialStream *)&SD2, "\r");
+    /* suffix the PID request with 1 to indicate we only want one response,
+     * likely from the one ECU that will be responding to PID requests.
+     */
+    chprintf((BaseSequentialStream *)&SD2, "1\r");
     log_trace(_LOG_PFX "Sent to STN1110\r\n");
     mark_stn1110_tx();
     set_pid_request_active(true);
@@ -381,7 +384,7 @@ void stn1110_worker(void)
         /* Wait for a line of data, then process it */
         size_t bytes_read = serial_getline(&SD2, (uint8_t*)stn_rx_buf, sizeof(stn_rx_buf));
         if (bytes_read > 0) {
-            log_trace(_LOG_PFX "STN1110 raw Rx: %s\r\n", stn_rx_buf);
+            log_trace(_LOG_PFX "STN1110 raw Rx: len(%i): %s\r\n", strlen(stn_rx_buf), stn_rx_buf);
             if (get_system_initialized()) {
                 _process_stn1110_response(stn_rx_buf);
             } else {
