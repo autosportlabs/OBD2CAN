@@ -12,7 +12,7 @@
 *.o
 *.pyc
 *cscope*
-.build
+firmware/build
 .cdtproject
 .cproject
 .dep/
