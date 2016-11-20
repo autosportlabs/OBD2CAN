@@ -71,6 +71,13 @@ static void _start_watchdog(void)
     wdgStart(&WDGD1, &wdgcfg);
 }
 
+static void _start_mco_output(void)
+{
+    /* output clock on PA8. Also see MCO settings in mcuconf.h */
+    //palSetPadMode(GPIOA, 8, PAL_STM32_MODE_ALTERNATE | PAL_STM32_OTYPE_PUSHPULL | PAL_STM32_OSPEED_HIGHEST | PAL_STM32_ALTERNATE(0));
+    //palSetPadMode(GPIOA, 8, PAL_MODE_ALTERNATE(0));
+    palSetPadMode(GPIOA, 8, PAL_STM32_MODE_ALTERNATE | PAL_STM32_OTYPE_PUSHPULL | PAL_STM32_OSPEED_HIGHEST | PAL_STM32_ALTERNATE(0));
+}
 int main(void)
 {
    /*
@@ -89,6 +96,7 @@ int main(void)
     /* Application specific initialization */
     system_can_init();
     system_serial_init();
+    _start_mco_output();
 
    /*
     * Creates the processing threads.

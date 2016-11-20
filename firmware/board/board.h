@@ -43,9 +43,9 @@
 
 #define STM32_LSEDRV                (3U << 3U)
 
-#if !defined(STM32_HSECLK)
+//#if !defined(STM32_HSECLK)
 #define STM32_HSECLK                8000000U
-#endif
+//#endif
 
 /* #define STM32_HSE_BYPASS */
 
