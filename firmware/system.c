@@ -207,6 +207,7 @@ void broadcast_stats(void)
     can_stats.data8[6] = MINOR_VER;
     can_stats.data8[7] = PATCH_VER;
     canTransmit(&CAND1, CAN_ANY_MAILBOX, &can_stats, MS2ST(CAN_TRANSMIT_TIMEOUT));
+    log_trace(_LOG_PFX "Broadcasting stats\r\n");
 }
 
 /* perform a soft reset of this processor */
