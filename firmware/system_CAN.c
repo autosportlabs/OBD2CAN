@@ -31,14 +31,12 @@
 /*
  * 250KBaud, automatic wakeup, Automatic Bus-off management, Transmit FIFO priority
  *
- * Note; TS1 should be 13, probably off b/c internal oscillator. check when switching to HSE
- * for 500K: BRP: 6, TS1: 9
- * for 250K: BRP: 12 TS1: 10
+ * 500K baud; 36MHz clock
  */
 static const CANConfig cancfg = {
     CAN_MCR_ABOM | CAN_MCR_AWUM | CAN_MCR_TXFP | CAN_MCR_NART,
-    CAN_BTR_SJW(1) | CAN_BTR_TS2(2) |
-    CAN_BTR_TS1(10) | CAN_BTR_BRP(12)
+    CAN_BTR_SJW(1) |
+    CAN_BTR_TS1(8) | CAN_BTR_TS2(3) | CAN_BTR_BRP(6)
 };
 
 /* Initialize our CAN peripheral */
