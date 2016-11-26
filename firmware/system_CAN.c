@@ -36,7 +36,7 @@
 static const CANConfig cancfg = {
     CAN_MCR_ABOM | CAN_MCR_AWUM | CAN_MCR_TXFP | CAN_MCR_NART,
     CAN_BTR_SJW(1) |
-    CAN_BTR_TS1(8) | CAN_BTR_TS2(3) | CAN_BTR_BRP(6)
+    CAN_BTR_TS1(11) | CAN_BTR_TS2(2) | CAN_BTR_BRP(5)
 };
 
 /* Initialize our CAN peripheral */
