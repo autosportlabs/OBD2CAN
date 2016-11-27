@@ -106,7 +106,7 @@ int main(void)
 
     while (true) {
         enum logging_levels level = get_logging_level();
-        uint32_t sleep = (level == logging_level_none ? MAIN_THREAD_SLEEP_NORMAL_MS : MAIN_THREAD_SLEEP_FINE_MS);
+        uint32_t sleep = (level == logging_level_trace ? MAIN_THREAD_SLEEP_FINE_MS : MAIN_THREAD_SLEEP_NORMAL_MS);
         chThdSleepMilliseconds(sleep);
         broadcast_stats();
         if (WATCHDOG_ENABLED)
