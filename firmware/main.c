@@ -32,6 +32,7 @@
 #define STN1110_THREAD_STACK 512
 #define MAIN_THREAD_SLEEP_NORMAL_MS 10000
 #define MAIN_THREAD_SLEEP_FINE_MS   1000
+#define MAIN_THREAD_CHECK_INTERVAL_MS 100
 #define WATCHDOG_TIMEOUT 11000
 #define WATCHDOG_ENABLED false
 
@@ -104,11 +105,16 @@ int main(void)
     chThdCreateStatic(wa_STN1110_rx, sizeof(wa_STN1110_rx), NORMALPRIO, STN1110_rx, NULL);
     chThdCreateStatic(can_rx_wa, sizeof(can_rx_wa), NORMALPRIO, can_rx, NULL);
 
+    uint32_t stats_check = 0;
     while (true) {
+        chThdSleepMilliseconds(MAIN_THREAD_CHECK_INTERVAL_MS);
         enum logging_levels level = get_logging_level();
-        uint32_t sleep = (level == logging_level_trace ? MAIN_THREAD_SLEEP_FINE_MS : MAIN_THREAD_SLEEP_NORMAL_MS);
-        chThdSleepMilliseconds(sleep);
-        broadcast_stats();
+        uint32_t stats_threshold = (level == logging_level_trace ? MAIN_THREAD_SLEEP_FINE_MS : MAIN_THREAD_SLEEP_NORMAL_MS);
+        stats_check += MAIN_THREAD_CHECK_INTERVAL_MS;
+        if (stats_check > stats_threshold) {
+            broadcast_stats();
+            stats_check = 0;
+        }
         if (WATCHDOG_ENABLED)
             wdgReset(&WDGD1);
         check_system_state();
