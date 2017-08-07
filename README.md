@@ -46,7 +46,7 @@ Operation
 =========
 
 CAN PID requests are received per OBDII SAE specifications and are translated 1:1 to STN1110 PID requests for the target ECU. 
-* 250KBPS
+* 500KBPS
 * 11 bit
 
 Protocol is set for automatic detection. 
