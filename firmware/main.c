@@ -120,6 +120,7 @@ int main(void)
         if (WATCHDOG_ENABLED)
             wdgReset(&WDGD1);
         check_system_state();
+        check_voltage_regulator_control();
     }
     return 0;
 }

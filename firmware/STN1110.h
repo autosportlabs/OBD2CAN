@@ -48,4 +48,5 @@ void stn1110_reset(enum obdii_protocol protocol, enum obdii_adaptive_timing adap
 void send_stn1110_pid_request(uint8_t * data, size_t data_len);
 void stn1110_worker(void);
 
+void check_voltage_regulator_control(void);
 #endif /* STN1110_H_ */

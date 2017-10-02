@@ -396,3 +396,17 @@ void stn1110_worker(void)
     }
 }
 
+void check_voltage_regulator_control(void)
+{
+    palSetPadMode(GPIOA, 5, PAL_STM32_MODE_INPUT);
+    palSetPadMode(GPIOA, 6, PAL_STM32_MODE_OUTPUT);
+
+    if (palReadPad(GPIOA, 5) == PAL_HIGH) {
+    	palClearPad(GPIOA, 6);
+    }
+    else {
+    	palSetPad(GPIOA, 6);
+    }
+
+}
+
