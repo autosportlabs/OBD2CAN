@@ -58,18 +58,20 @@ static THD_FUNCTION(STN1110_rx, arg)
     stn1110_worker();
 }
 
+static const WDGConfig wdgcfg = {
+        STM32_IWDG_PR_64,
+        STM32_IWDG_RL(1000),
+        STM32_IWDG_WIN_DISABLED
+};
+
 /* Watchdog configuration and initialization
  */
 static void _start_watchdog(void)
 {
-    if (! WATCHDOG_ENABLED)
-        return;
+        if (! WATCHDOG_ENABLED)
+                return;
 
-    const WDGConfig wdgcfg = {
-        STM32_IWDG_PR_4,
-        STM32_IWDG_RL(WATCHDOG_TIMEOUT)
-    };
-    wdgStart(&WDGD1, &wdgcfg);
+        wdgStart(&WDGD1, &wdgcfg);
 }
 
 static void _start_mco_output(void)

@@ -38,6 +38,8 @@
 #define AT_COMMAND_DELAY_MS 100
 #define LONG_DELAY_MS 1000
 
+#define GPIOA_RESET_NVM_STN1110     1
+#define GPIOB_RESET_STN1110         1
 /* Receive Buffer for the STN1110 */
 static char stn_rx_buf[1024];
 
@@ -77,7 +79,7 @@ static void _hard_reset_stn1110(void)
      * TODO: this will be changed in hardware to just tie it to 3.3v
      * since we don't really need processor control of this pin
      * */
-    palSetPadMode(GPIOA, GPIOB_RESET_NVM_STN1110, PAL_MODE_INPUT_PULLUP);
+    palSetPadMode(GPIOA, GPIOA_RESET_NVM_STN1110, PAL_MODE_INPUT_PULLUP);
 
     /* Toggle hard reset Line */
     palSetPadMode(GPIOB, GPIOB_RESET_STN1110, PAL_MODE_OUTPUT_PUSHPULL);
