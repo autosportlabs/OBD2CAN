@@ -1,4 +1,4 @@
-# OBD2CAN firmware
+# ShiftX3 firmware
 #
 # Copyright (C) 2016 Autosport Labs
 #
@@ -24,7 +24,7 @@
 
 # Compiler options here.
 ifeq ($(USE_OPT),)
-  USE_OPT = -O2 -ggdb -fomit-frame-pointer -falign-functions=16
+  USE_OPT = -Os -ggdb -fomit-frame-pointer -falign-functions=16 -std=c99
 endif
 
 # C specific options here (added to USE_OPT).
@@ -121,7 +121,7 @@ STREAMSSRC = 	$(CHIBIOS)/os/hal/lib/streams/chprintf.c \
 STREAMSINC = $(CHIBIOS)/os/hal/lib/streams
 
 # Define linker script file here
-LDSCRIPT= $(STARTUPLD)/STM32F072xB.ld
+LDSCRIPT= $(STARTUPLD)/STM32F042x6.ld
 
 # C sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
@@ -138,8 +138,8 @@ CSRC = $(STARTUPSRC) \
        system.c \
        system_serial.c \
        main.c \
-       STN1110.c \
        system_CAN.c \
+       STN1110.c \
        logging.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global

@@ -71,6 +71,8 @@ void system_serial_init_SD2(uint32_t speed)
     palSetPadMode(GPIOA, 2, PAL_STM32_MODE_ALTERNATE | PAL_STM32_OTYPE_PUSHPULL | PAL_STM32_OSPEED_HIGHEST | PAL_STM32_ALTERNATE(1));
     /* USART2 RX.       */
     palSetPadMode(GPIOA, 3, PAL_STM32_MODE_ALTERNATE | PAL_STM32_PUPDR_PULLUP | PAL_STM32_ALTERNATE(1));
+//    palSetPadMode(GPIOA, 2, PAL_MODE_ALTERNATE(1));       /* USART2 TX.       */
+  //  palSetPadMode(GPIOA, 3, PAL_MODE_ALTERNATE(1));      /* USART2 RX.       */
     sdStart(&SD2, &uart_cfg);
 }
 

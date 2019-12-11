@@ -1,7 +1,7 @@
 /*
  * OBD2CAN firmware
  *
- * Copyright (C) 2016 Autosport Labs
+ * Copyright (C) 2018 Autosport Labs
  *
  * This file is part of the Race Capture firmware suite
  *
@@ -66,6 +66,12 @@
 #define STM32_RTCSEL                        STM32_RTCSEL_LSI
 
 /*
+ * CAN driver system settings.
+ */
+#define STM32_CAN_USE_CAN1                  TRUE
+#define STM32_CAN_CAN1_IRQ_PRIORITY         3
+
+/*
  * ADC driver system settings.
  */
 #define STM32_ADC_USE_ADC1                  FALSE
@@ -73,25 +79,6 @@
 #define STM32_ADC_ADC1_DMA_PRIORITY         2
 #define STM32_ADC_ADC1_DMA_IRQ_PRIORITY     2
 #define STM32_ADC_ADC1_DMA_STREAM           STM32_DMA_STREAM_ID(1, 1)
-
-/*
- * CAN driver system settings.
- */
-#define STM32_CAN_USE_CAN1                  TRUE
-#define STM32_CAN_CAN1_IRQ_PRIORITY         3
-
-/*
- * DAC driver system settings.
- */
-#define STM32_DAC_DUAL_MODE                 FALSE
-#define STM32_DAC_USE_DAC1_CH1              TRUE
-#define STM32_DAC_USE_DAC1_CH2              TRUE
-#define STM32_DAC_DAC1_CH1_IRQ_PRIORITY     10
-#define STM32_DAC_DAC1_CH2_IRQ_PRIORITY     10
-#define STM32_DAC_DAC1_CH1_DMA_PRIORITY     2
-#define STM32_DAC_DAC1_CH2_DMA_PRIORITY     2
-#define STM32_DAC_DAC1_CH1_DMA_STREAM       STM32_DMA_STREAM_ID(1, 3)
-#define STM32_DAC_DAC1_CH2_DMA_STREAM       STM32_DMA_STREAM_ID(1, 4)
 
 /*
  * EXT driver system settings.
@@ -119,55 +106,24 @@
  * I2C driver system settings.
  */
 #define STM32_I2C_USE_I2C1                  FALSE
-#define STM32_I2C_USE_I2C2                  FALSE
 #define STM32_I2C_BUSY_TIMEOUT              50
 #define STM32_I2C_I2C1_IRQ_PRIORITY         3
-#define STM32_I2C_I2C2_IRQ_PRIORITY         3
 #define STM32_I2C_USE_DMA                   TRUE
 #define STM32_I2C_I2C1_DMA_PRIORITY         1
-#define STM32_I2C_I2C2_DMA_PRIORITY         1
 #define STM32_I2C_I2C1_RX_DMA_STREAM        STM32_DMA_STREAM_ID(1, 3)
 #define STM32_I2C_I2C1_TX_DMA_STREAM        STM32_DMA_STREAM_ID(1, 2)
-#define STM32_I2C_I2C2_RX_DMA_STREAM        STM32_DMA_STREAM_ID(1, 5)
-#define STM32_I2C_I2C2_TX_DMA_STREAM        STM32_DMA_STREAM_ID(1, 4)
 #define STM32_I2C_DMA_ERROR_HOOK(i2cp)      osalSysHalt("DMA failure")
 
 /*
  * I2S driver system settings.
  */
 #define STM32_I2S_USE_SPI1                  FALSE
-#define STM32_I2S_USE_SPI2                  FALSE
 #define STM32_I2S_SPI1_MODE                 (STM32_I2S_MODE_MASTER |        \
                                              STM32_I2S_MODE_RX)
-#define STM32_I2S_SPI2_MODE                 (STM32_I2S_MODE_MASTER |        \
-                                             STM32_I2S_MODE_RX)
 #define STM32_I2S_SPI1_IRQ_PRIORITY         2
-#define STM32_I2S_SPI2_IRQ_PRIORITY         2
 #define STM32_I2S_SPI1_DMA_PRIORITY         1
-#define STM32_I2S_SPI2_DMA_PRIORITY         1
 #define STM32_I2S_SPI1_RX_DMA_STREAM        STM32_DMA_STREAM_ID(1, 2)
 #define STM32_I2S_SPI1_TX_DMA_STREAM        STM32_DMA_STREAM_ID(1, 3)
-#define STM32_I2S_SPI2_RX_DMA_STREAM        STM32_DMA_STREAM_ID(1, 4)
-#define STM32_I2S_SPI2_TX_DMA_STREAM        STM32_DMA_STREAM_ID(1, 5)
-#define STM32_I2S_DMA_ERROR_HOOK(i2sp)      osalSysHalt("DMA failure")
-
-/*
- * I2S driver system settings.
- */
-#define STM32_I2S_USE_SPI1                  FALSE
-#define STM32_I2S_USE_SPI2                  FALSE
-#define STM32_I2S_SPI1_MODE                 (STM32_I2S_MODE_MASTER |        \
-                                             STM32_I2S_MODE_RX)
-#define STM32_I2S_SPI2_MODE                 (STM32_I2S_MODE_MASTER |        \
-                                             STM32_I2S_MODE_RX)
-#define STM32_I2S_SPI1_IRQ_PRIORITY         2
-#define STM32_I2S_SPI2_IRQ_PRIORITY         2
-#define STM32_I2S_SPI1_DMA_PRIORITY         1
-#define STM32_I2S_SPI2_DMA_PRIORITY         1
-#define STM32_I2S_SPI1_RX_DMA_STREAM        STM32_DMA_STREAM_ID(1, 2)
-#define STM32_I2S_SPI1_TX_DMA_STREAM        STM32_DMA_STREAM_ID(1, 3)
-#define STM32_I2S_SPI2_RX_DMA_STREAM        STM32_DMA_STREAM_ID(1, 4)
-#define STM32_I2S_SPI2_TX_DMA_STREAM        STM32_DMA_STREAM_ID(1, 5)
 #define STM32_I2S_DMA_ERROR_HOOK(i2sp)      osalSysHalt("DMA failure")
 
 /*
@@ -186,7 +142,7 @@
 #define STM32_PWM_USE_ADVANCED              FALSE
 #define STM32_PWM_USE_TIM1                  FALSE
 #define STM32_PWM_USE_TIM2                  FALSE
-#define STM32_PWM_USE_TIM3                  FALSE
+#define STM32_PWM_USE_TIM3                  TRUE
 #define STM32_PWM_TIM1_IRQ_PRIORITY         3
 #define STM32_PWM_TIM2_IRQ_PRIORITY         3
 #define STM32_PWM_TIM3_IRQ_PRIORITY         3
@@ -203,15 +159,10 @@
  * SPI driver system settings.
  */
 #define STM32_SPI_USE_SPI1                  FALSE
-#define STM32_SPI_USE_SPI2                  FALSE
 #define STM32_SPI_SPI1_DMA_PRIORITY         1
-#define STM32_SPI_SPI2_DMA_PRIORITY         1
 #define STM32_SPI_SPI1_IRQ_PRIORITY         2
-#define STM32_SPI_SPI2_IRQ_PRIORITY         2
 #define STM32_SPI_SPI1_RX_DMA_STREAM        STM32_DMA_STREAM_ID(1, 2)
 #define STM32_SPI_SPI1_TX_DMA_STREAM        STM32_DMA_STREAM_ID(1, 3)
-#define STM32_SPI_SPI2_RX_DMA_STREAM        STM32_DMA_STREAM_ID(1, 4)
-#define STM32_SPI_SPI2_TX_DMA_STREAM        STM32_DMA_STREAM_ID(1, 5)
 #define STM32_SPI_DMA_ERROR_HOOK(spip)      osalSysHalt("DMA failure")
 
 /*
@@ -236,15 +187,9 @@
 #define STM32_UART_DMA_ERROR_HOOK(uartp)    osalSysHalt("DMA failure")
 
 /*
- * USB driver system settings.
- */
-#define STM32_USB_USE_USB1                  FALSE
-#define STM32_USB_LOW_POWER_ON_SUSPEND      FALSE
-#define STM32_USB_USB1_LP_IRQ_PRIORITY      3
-
-/*
  * WDG driver system settings.
  */
 #define STM32_WDG_USE_IWDG                  TRUE
 
 #endif /* _MCUCONF_H_ */
+

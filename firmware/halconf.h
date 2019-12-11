@@ -179,7 +179,7 @@
  * @note    Disabling this option saves both code and data space.
  */
 #if !defined(ADC_USE_WAIT) || defined(__DOXYGEN__)
-#define ADC_USE_WAIT                TRUE
+#define ADC_USE_WAIT                FALSE
 #endif
 
 /**
@@ -187,7 +187,7 @@
  * @note    Disabling this option saves both code and data space.
  */
 #if !defined(ADC_USE_MUTUAL_EXCLUSION) || defined(__DOXYGEN__)
-#define ADC_USE_MUTUAL_EXCLUSION    TRUE
+#define ADC_USE_MUTUAL_EXCLUSION    FALSE
 #endif
 
 /*===========================================================================*/
@@ -287,7 +287,7 @@
  *          default configuration.
  */
 #if !defined(SERIAL_DEFAULT_BITRATE) || defined(__DOXYGEN__)
-#define SERIAL_DEFAULT_BITRATE      9600
+#define SERIAL_DEFAULT_BITRATE      115200
 #endif
 
 /**
@@ -298,7 +298,7 @@
  *          buffers.
  */
 #if !defined(SERIAL_BUFFERS_SIZE) || defined(__DOXYGEN__)
-#define SERIAL_BUFFERS_SIZE         320
+#define SERIAL_BUFFERS_SIZE         16
 #endif
 
 /*===========================================================================*/
@@ -333,7 +333,7 @@
  * @note    Disabling this option saves both code and data space.
  */
 #if !defined(SPI_USE_WAIT) || defined(__DOXYGEN__)
-#define SPI_USE_WAIT                FALSE
+#define SPI_USE_WAIT                TRUE
 #endif
 
 /**
@@ -341,7 +341,7 @@
  * @note    Disabling this option saves both code and data space.
  */
 #if !defined(SPI_USE_MUTUAL_EXCLUSION) || defined(__DOXYGEN__)
-#define SPI_USE_MUTUAL_EXCLUSION    FALSE
+#define SPI_USE_MUTUAL_EXCLUSION    TRUE
 #endif
 
 /*===========================================================================*/

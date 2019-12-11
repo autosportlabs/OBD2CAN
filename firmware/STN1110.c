@@ -383,6 +383,7 @@ void stn1110_worker(void)
     _stn1110_reset_defaults();
 
     while (true) {
+        log_trace("blah\r\n");
         /* Wait for a line of data, then process it */
         size_t bytes_read = serial_getline(&SD2, (uint8_t*)stn_rx_buf, sizeof(stn_rx_buf));
         if (bytes_read > 0) {
@@ -402,9 +403,11 @@ void check_voltage_regulator_control(void)
     palSetPadMode(GPIOA, 6, PAL_STM32_MODE_OUTPUT);
 
     if (palReadPad(GPIOA, 5) == PAL_HIGH) {
+    log_trace(_LOG_PFX "STN1110 vreg: %i\r\n", 1);
     	palClearPad(GPIOA, 6);
     }
     else {
+    log_trace(_LOG_PFX "STN1110 vreg: %i\r\n", 0);
     	palSetPad(GPIOA, 6);
     }
 

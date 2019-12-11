@@ -249,7 +249,6 @@
                                      PIN_MODE_INPUT(GPIOA_ARD_A4) |         \
                                      PIN_MODE_INPUT(GPIOA_ARD_A5) |         \
                                      PIN_MODE_INPUT(GPIOA_ARD_A6) |         \
-                                     PIN_MODE_INPUT(GPIOA_ARD_D9) |         \
                                      PIN_MODE_INPUT(GPIOA_ARD_D1) |         \
                                      PIN_MODE_INPUT(GPIOA_ARD_D0) |         \
                                      PIN_MODE_INPUT(GPIOA_ARD_D10) |        \

@@ -148,9 +148,9 @@ static bool default_handler(USBDriver *usbp) {
          procedure on the current configuration.*/
       if (usbp->state == USB_ACTIVE) {
         /* Current configuration cleared.*/
-        chSysLockFromISR ();
+        osalSysLockFromISR ();
         usbDisableEndpointsI(usbp);
-        chSysUnlockFromISR ();
+        osalSysUnlockFromISR ();
         usbp->configuration = 0U;
         usbp->state = USB_SELECTED;
         _usb_isr_invoke_event_cb(usbp, USB_EVENT_UNCONFIGURED);
@@ -416,14 +416,12 @@ void usbDisableEndpointsI(USBDriver *usbp) {
 #if USB_USE_WAIT == TRUE
     /* Signaling the event to threads waiting on endpoints.*/
     if (usbp->epc[i] != NULL) {
-      osalSysLockFromISR();
       if (usbp->epc[i]->in_state != NULL) {
         osalThreadResumeI(&usbp->epc[i]->in_state->thread, MSG_RESET);
       }
       if (usbp->epc[i]->out_state != NULL) {
         osalThreadResumeI(&usbp->epc[i]->out_state->thread, MSG_RESET);
       }
-      osalSysUnlockFromISR();
     }
 #endif
     usbp->epc[i] = NULL;
