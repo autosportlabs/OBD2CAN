@@ -109,8 +109,8 @@ int main(void)
             broadcast_stats();
             stats_check = 0;
         }
-//        if (WATCHDOG_ENABLED)
-  //          wdgReset(&WDGD1);
+        if (WATCHDOG_ENABLED)
+            wdgReset(&WDGD1);
         check_system_state();
         check_voltage_regulator_control();
     }

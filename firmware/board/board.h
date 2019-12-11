@@ -244,7 +244,7 @@
 #define VAL_GPIOA_MODER             (PIN_MODE_INPUT(GPIOA_ARD_A0) |         \
                                      PIN_MODE_INPUT(GPIOA_ARD_A1) |         \
                                      PIN_MODE_ALTERNATE(GPIOA_VCP_TX) |     \
-                                     PIN_MODE_INPUT(GPIOA_ARD_A2) |         \
+                                     PIN_MODE_ALTERNATE(GPIOA_VCP_RX)) |    \
                                      PIN_MODE_INPUT(GPIOA_ARD_A3) |         \
                                      PIN_MODE_INPUT(GPIOA_ARD_A4) |         \
                                      PIN_MODE_INPUT(GPIOA_ARD_A5) |         \
