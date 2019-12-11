@@ -33,7 +33,7 @@
 
 #define _LOG_PFX "SYS_STN1110: "
 
-#define RESET_DELAY_MS 1000
+#define RESET_DELAY_MS 10
 #define AT_COMMAND_DELAY_MS 100
 #define LONG_DELAY_MS 1000
 
@@ -100,8 +100,8 @@ void stn1110_reset(enum obdii_protocol protocol, enum obdii_adaptive_timing adap
     system_serial_init_SD2(STN1110_INITIAL_BAUD_RATE);
 
     /* switch to the target baud rate */
-   // _send_at_param("ST SBR ", STN1110_RUNTIME_BAUD_RATE);
-   // system_serial_init_SD2(STN1110_RUNTIME_BAUD_RATE);
+    _send_at_param("ST SBR ", STN1110_RUNTIME_BAUD_RATE);
+    system_serial_init_SD2(STN1110_RUNTIME_BAUD_RATE);
 
     /* set adaptive timing */
     _send_at_param("AT AT", adaptive_timing);
@@ -382,10 +382,8 @@ void stn1110_worker(void)
     _stn1110_reset_defaults();
 
     while (true) {
-        log_trace("blah\r\n");
         /* Wait for a line of data, then process it */
         size_t bytes_read = serial_getline(&SD2, (uint8_t*)stn_rx_buf, sizeof(stn_rx_buf));
-        log_trace("read %d", bytes_read);
         if (bytes_read > 0) {
             log_trace(_LOG_PFX "STN1110 raw Rx: len(%i): %s\r\n", strlen(stn_rx_buf), stn_rx_buf);
             if (get_system_initialized()) {
@@ -403,11 +401,9 @@ void check_voltage_regulator_control(void)
     palSetPadMode(GPIOA, 6, PAL_STM32_MODE_OUTPUT);
 
     if (palReadPad(GPIOA, 5) == PAL_HIGH) {
-    log_trace(_LOG_PFX "STN1110 vreg: %i\r\n", 1);
     	palClearPad(GPIOA, 6);
     }
     else {
-    log_trace(_LOG_PFX "STN1110 vreg: %i\r\n", 0);
     	palSetPad(GPIOA, 6);
     }
 
