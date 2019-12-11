@@ -152,7 +152,7 @@
 /* EXTI attributes.*/
 #define STM32_EXTI_NUM_LINES                41
 #define STM32_EXTI_IMR1_MASK                0xFF820000U
-#define STM32_EXTI_IMR2_MASK                0xFFFFFE87U
+#define STM32_EXTI_IMR2_MASK                0xFFFFFF87U
 
 #define STM32_EXTI_LINE0_HANDLER            Vector58
 #define STM32_EXTI_LINE1_HANDLER            Vector5C
@@ -265,7 +265,7 @@
 
 #define STM32_HAS_TIM1                      TRUE
 #define STM32_TIM1_IS_32BITS                FALSE
-#define STM32_TIM1_CHANNELS                 4
+#define STM32_TIM1_CHANNELS                 6
 #define STM32_TIM1_UP_HANDLER               VectorA4
 #define STM32_TIM1_CC_HANDLER               VectorAC
 #define STM32_TIM1_UP_NUMBER                25
@@ -398,6 +398,9 @@
 
 /* FSMC attributes.*/
 #define STM32_HAS_FSMC                      TRUE
+#define STM32_FSMC_IS_FMC                   FALSE
+#define STM32_FSMC_HANDLER                  Vector100
+#define STM32_FSMC_NUMBER                   48
 
 /* CRC attributes.*/
 #define STM32_HAS_CRC                       TRUE

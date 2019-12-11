@@ -14,13 +14,14 @@
     limitations under the License.
 */
 
-#ifndef USBCFG_H
-#define USBCFG_H
+/**
+ * @file    mfs_test_sequence_003.h
+ * @brief   Test Sequence 003 header.
+ */
 
-extern const USBConfig usbcfg;
-extern SerialUSBConfig serusbcfg;
-extern SerialUSBDriver SDU1;
+#ifndef MFS_TEST_SEQUENCE_003_H
+#define MFS_TEST_SEQUENCE_003_H
 
-#endif  /* USBCFG_H */
+extern const testsequence_t mfs_test_sequence_003;
 
-/** @} */
+#endif /* MFS_TEST_SEQUENCE_003_H */

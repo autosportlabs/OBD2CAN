@@ -249,6 +249,20 @@ static inline void chGuardedPoolObjectInit(guarded_memory_pool_t *gmp,
 }
 
 /**
+ * @brief   Gets the count of objects in a guarded memory pool.
+ * @pre     The guarded memory pool must be already been initialized.
+ *
+ * @param[in] gmp       pointer to a @p guarded_memory_pool_t structure
+ * @return              The number of objects.
+ *
+ * @iclass
+ */
+static inline cnt_t chGuardedPoolGetCounterI(guarded_memory_pool_t *gmp) {
+
+  return chSemGetCounterI(&gmp->sem);
+}
+
+/**
  * @brief   Allocates an object from a guarded memory pool.
  * @pre     The guarded memory pool must be already been initialized.
  *

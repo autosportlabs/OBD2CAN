@@ -55,7 +55,7 @@
 /**
  * @brief   Kernel version string.
  */
-#define CH_KERNEL_VERSION       "3.2.0"
+#define CH_KERNEL_VERSION       "3.2.2"
 
 /**
  * @brief   Kernel version major number.
@@ -70,7 +70,7 @@
 /**
  * @brief   Kernel version patch number.
  */
-#define CH_KERNEL_PATCH         0
+#define CH_KERNEL_PATCH         2
 /** @} */
 
 /**
@@ -449,7 +449,7 @@
 
 #if (CH_LICENSE_FEATURES != CH_FEATURES_FULL) &&                            \
     (CH_LICENSE_FEATURES != CH_FEATURES_INTERMEDIATE) &&                    \
-    (CH_LICENSE_FEATURES == CH_FEATURES_BASIC)
+    (CH_LICENSE_FEATURES != CH_FEATURES_BASIC)
 #error "invalid CH_LICENSE_FEATURES setting"
 #endif
 
