@@ -21,7 +21,6 @@
 
 #include "ch.h"
 #include "hal.h"
-#include "pal_lld.h"
 #include "STN1110.h"
 #include "system_serial.h"
 #include "logging.h"
@@ -386,6 +385,7 @@ void stn1110_worker(void)
         log_trace("blah\r\n");
         /* Wait for a line of data, then process it */
         size_t bytes_read = serial_getline(&SD2, (uint8_t*)stn_rx_buf, sizeof(stn_rx_buf));
+        log_trace("read %d", bytes_read);
         if (bytes_read > 0) {
             log_trace(_LOG_PFX "STN1110 raw Rx: len(%i): %s\r\n", strlen(stn_rx_buf), stn_rx_buf);
             if (get_system_initialized()) {
@@ -403,11 +403,11 @@ void check_voltage_regulator_control(void)
     palSetPadMode(GPIOA, 6, PAL_STM32_MODE_OUTPUT);
 
     if (palReadPad(GPIOA, 5) == PAL_HIGH) {
-    log_trace(_LOG_PFX "STN1110 vreg: %i\r\n", 1);
+    //log_trace(_LOG_PFX "STN1110 vreg: %i\r\n", 1);
     	palClearPad(GPIOA, 6);
     }
     else {
-    log_trace(_LOG_PFX "STN1110 vreg: %i\r\n", 0);
+    //log_trace(_LOG_PFX "STN1110 vreg: %i\r\n", 0);
     	palSetPad(GPIOA, 6);
     }
 
