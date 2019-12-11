@@ -20,7 +20,7 @@
  */
 
 #include "system_serial.h"
-
+#include "logging.h"
 /*
  * Read a line from the specified serial connection into the specified
  * buffer buf with a length of buf_len
@@ -34,8 +34,11 @@ size_t serial_getline(SerialDriver *sdp, uint8_t *buf, size_t buf_len)
     size_t read = 0;
     --buf_len; /* account for NULL terminator */
     while (read < buf_len) {
+	log_trace("waiting for char\r\n");
+
         ++read;
         *buf++ = sdGet(sdp);
+	log_trace("got char\r\n");
         if ('\r' == buf[-1])
             break;
     }
@@ -74,5 +77,5 @@ void system_serial_init_SD2(uint32_t speed)
 void system_serial_init()
 {
     system_serial_init_SD1(SD1_BAUD);
-    system_serial_init_SD2(SD2_BAUD);
+//    system_serial_init_SD2(SD2_BAUD);
 }

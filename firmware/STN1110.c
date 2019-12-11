@@ -33,7 +33,7 @@
 
 #define _LOG_PFX "SYS_STN1110: "
 
-#define RESET_DELAY_MS 10
+#define RESET_DELAY_MS 1000
 #define AT_COMMAND_DELAY_MS 100
 #define LONG_DELAY_MS 1000
 
@@ -100,8 +100,8 @@ void stn1110_reset(enum obdii_protocol protocol, enum obdii_adaptive_timing adap
     system_serial_init_SD2(STN1110_INITIAL_BAUD_RATE);
 
     /* switch to the target baud rate */
-    _send_at_param("ST SBR ", STN1110_RUNTIME_BAUD_RATE);
-    system_serial_init_SD2(STN1110_RUNTIME_BAUD_RATE);
+   // _send_at_param("ST SBR ", STN1110_RUNTIME_BAUD_RATE);
+   // system_serial_init_SD2(STN1110_RUNTIME_BAUD_RATE);
 
     /* set adaptive timing */
     _send_at_param("AT AT", adaptive_timing);
