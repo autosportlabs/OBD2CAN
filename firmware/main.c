@@ -34,7 +34,7 @@
 #define MAIN_THREAD_SLEEP_FINE_MS   1000
 #define MAIN_THREAD_CHECK_INTERVAL_MS 100
 #define WATCHDOG_TIMEOUT 11000
-#define WATCHDOG_ENABLED false
+#define WATCHDOG_ENABLED true
 
 /*
  * CAN receiver thread.

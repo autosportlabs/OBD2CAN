@@ -22,7 +22,7 @@
 #ifndef SETTINGS_H_
 #define SETTINGS_H_
 
-#define MAJOR_VER 1
+#define MAJOR_VER 2
 #define MINOR_VER 0
 #define PATCH_VER 0
 
@@ -66,6 +66,6 @@
 
 /* Baud rates for STN1110 co-processor */
 #define STN1110_INITIAL_BAUD_RATE 9600
-#define STN1110_RUNTIME_BAUD_RATE 230400
+#define STN1110_RUNTIME_BAUD_RATE 460800
 
 #endif /* SETTINGS_H_ */

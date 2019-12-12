@@ -378,6 +378,7 @@ void send_stn1110_pid_request(uint8_t * data, size_t data_len)
 
 void stn1110_worker(void)
 {
+    log_info(_LOG_PFX "STN1110 worker start\r\n");
     /*reset our chip */
     _stn1110_reset_defaults();
 
@@ -401,10 +402,10 @@ void check_voltage_regulator_control(void)
     palSetPadMode(GPIOA, 6, PAL_STM32_MODE_OUTPUT);
 
     if (palReadPad(GPIOA, 5) == PAL_HIGH) {
-    	palClearPad(GPIOA, 6);
+             palClearPad(GPIOA, 6);
     }
     else {
-    	palSetPad(GPIOA, 6);
+            palSetPad(GPIOA, 6);
     }
 
 }
