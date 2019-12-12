@@ -21,7 +21,6 @@
 
 #include "ch.h"
 #include "hal.h"
-#include "pal_lld.h"
 #include "STN1110.h"
 #include "system_serial.h"
 #include "logging.h"
@@ -38,6 +37,8 @@
 #define AT_COMMAND_DELAY_MS 100
 #define LONG_DELAY_MS 1000
 
+#define GPIOA_RESET_NVM_STN1110     1
+#define GPIOB_RESET_STN1110         1
 /* Receive Buffer for the STN1110 */
 static char stn_rx_buf[1024];
 
@@ -77,7 +78,7 @@ static void _hard_reset_stn1110(void)
      * TODO: this will be changed in hardware to just tie it to 3.3v
      * since we don't really need processor control of this pin
      * */
-    palSetPadMode(GPIOA, GPIOB_RESET_NVM_STN1110, PAL_MODE_INPUT_PULLUP);
+    palSetPadMode(GPIOA, GPIOA_RESET_NVM_STN1110, PAL_MODE_INPUT_PULLUP);
 
     /* Toggle hard reset Line */
     palSetPadMode(GPIOB, GPIOB_RESET_STN1110, PAL_MODE_OUTPUT_PUSHPULL);
@@ -377,6 +378,7 @@ void send_stn1110_pid_request(uint8_t * data, size_t data_len)
 
 void stn1110_worker(void)
 {
+    log_info(_LOG_PFX "STN1110 worker start\r\n");
     /*reset our chip */
     _stn1110_reset_defaults();
 
@@ -392,5 +394,19 @@ void stn1110_worker(void)
             }
         }
     }
+}
+
+void check_voltage_regulator_control(void)
+{
+    palSetPadMode(GPIOA, 5, PAL_STM32_MODE_INPUT);
+    palSetPadMode(GPIOA, 6, PAL_STM32_MODE_OUTPUT);
+
+    if (palReadPad(GPIOA, 5) == PAL_HIGH) {
+             palClearPad(GPIOA, 6);
+    }
+    else {
+            palSetPad(GPIOA, 6);
+    }
+
 }
 

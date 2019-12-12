@@ -152,6 +152,7 @@ void dispatch_can_rx(CANRxFrame *rx_msg)
 /* Main worker for receiving CAN messages */
 void can_worker(void)
 {
+    log_info(_LOG_PFX "CAN worker start\r\n");
     event_listener_t el;
     CANRxFrame rx_msg;
     chRegSetThreadName("CAN receiver");

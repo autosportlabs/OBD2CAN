@@ -25,6 +25,15 @@
 #include "hal.h"
 #include "chprintf.h"
 
+#ifndef ST2MS
+#define ST2MS(n) (((n) * 1000UL + CH_CFG_ST_FREQUENCY - 1UL) / CH_CFG_ST_FREQUENCY)
+#endif
+
+#ifndef MS2ST
+#define MS2ST(msec)                                                         \
+  ((systime_t)(((((uint32_t)(msec)) *                                       \
+                 ((uint32_t)CH_CFG_ST_FREQUENCY)) + 999UL) / 1000UL))
+#endif
 
 enum logging_levels {
     logging_level_none,

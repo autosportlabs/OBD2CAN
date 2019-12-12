@@ -28,13 +28,13 @@
 #include "system_serial.h"
 #include "system_CAN.h"
 
-#define CAN_THREAD_STACK 512
-#define STN1110_THREAD_STACK 512
+#define CAN_THREAD_STACK 256
+#define STN1110_THREAD_STACK 256
 #define MAIN_THREAD_SLEEP_NORMAL_MS 10000
 #define MAIN_THREAD_SLEEP_FINE_MS   1000
 #define MAIN_THREAD_CHECK_INTERVAL_MS 100
 #define WATCHDOG_TIMEOUT 11000
-#define WATCHDOG_ENABLED false
+#define WATCHDOG_ENABLED true
 
 /*
  * CAN receiver thread.
@@ -58,27 +58,22 @@ static THD_FUNCTION(STN1110_rx, arg)
     stn1110_worker();
 }
 
+static const WDGConfig wdgcfg = {
+        STM32_IWDG_PR_64,
+        STM32_IWDG_RL(1000),
+        STM32_IWDG_WIN_DISABLED
+};
+
 /* Watchdog configuration and initialization
  */
 static void _start_watchdog(void)
 {
-    if (! WATCHDOG_ENABLED)
-        return;
+        if (! WATCHDOG_ENABLED)
+                return;
 
-    const WDGConfig wdgcfg = {
-        STM32_IWDG_PR_4,
-        STM32_IWDG_RL(WATCHDOG_TIMEOUT)
-    };
-    wdgStart(&WDGD1, &wdgcfg);
+        wdgStart(&WDGD1, &wdgcfg);
 }
 
-static void _start_mco_output(void)
-{
-    /* output clock on PA8. Also see MCO settings in mcuconf.h */
-    //palSetPadMode(GPIOA, 8, PAL_STM32_MODE_ALTERNATE | PAL_STM32_OTYPE_PUSHPULL | PAL_STM32_OSPEED_HIGHEST | PAL_STM32_ALTERNATE(0));
-    //palSetPadMode(GPIOA, 8, PAL_MODE_ALTERNATE(0));
-    palSetPadMode(GPIOA, 8, PAL_STM32_MODE_ALTERNATE | PAL_STM32_OTYPE_PUSHPULL | PAL_STM32_OSPEED_HIGHEST | PAL_STM32_ALTERNATE(0));
-}
 int main(void)
 {
    /*
@@ -97,7 +92,6 @@ int main(void)
     /* Application specific initialization */
     system_can_init();
     system_serial_init();
-    _start_mco_output();
 
    /*
     * Creates the processing threads.
@@ -118,6 +112,7 @@ int main(void)
         if (WATCHDOG_ENABLED)
             wdgReset(&WDGD1);
         check_system_state();
+        check_voltage_regulator_control();
     }
     return 0;
 }

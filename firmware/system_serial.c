@@ -20,7 +20,6 @@
  */
 
 #include "system_serial.h"
-
 /*
  * Read a line from the specified serial connection into the specified
  * buffer buf with a length of buf_len
@@ -34,6 +33,7 @@ size_t serial_getline(SerialDriver *sdp, uint8_t *buf, size_t buf_len)
     size_t read = 0;
     --buf_len; /* account for NULL terminator */
     while (read < buf_len) {
+
         ++read;
         *buf++ = sdGet(sdp);
         if ('\r' == buf[-1])
@@ -43,35 +43,29 @@ size_t serial_getline(SerialDriver *sdp, uint8_t *buf, size_t buf_len)
     return read;
 }
 
-/*
- * Initialize connection for SD1 (logger)
- */
 void system_serial_init_SD1(uint32_t speed)
 {
-    /*
-     * Activates the serial driver 1 (debug port) using the driver default configuration.
-     * PA9 and PA10 are routed to USART1.
-     */
     static SerialConfig uart_cfg;
     uart_cfg.speed=speed;
-    palSetPadMode(GPIOA, 9, PAL_MODE_ALTERNATE(1));       /* USART1 TX.       */
-    palSetPadMode(GPIOA, 10, PAL_MODE_ALTERNATE(1));      /* USART1 RX.       */
+
+    /* USART1 TX.       */
+    palSetPadMode(GPIOA, 9, PAL_STM32_MODE_ALTERNATE | PAL_STM32_OTYPE_PUSHPULL | PAL_STM32_OSPEED_HIGHEST | PAL_STM32_ALTERNATE(1));
+    /* USART1 RX.       */
+    palSetPadMode(GPIOA, 10, PAL_STM32_MODE_ALTERNATE | PAL_STM32_PUPDR_PULLUP | PAL_STM32_ALTERNATE(1));
     sdStart(&SD1, &uart_cfg);
 }
 
-/*
- * Initialize connection for SD2 (STN1110)
- */
 void system_serial_init_SD2(uint32_t speed)
 {
-    static SerialConfig uart_cfg;
-    uart_cfg.speed=speed;
+        static SerialConfig uart_cfg;
+        uart_cfg.speed=speed;
 
-    /* USART2 TX.       */
-    palSetPadMode(GPIOA, 2, PAL_STM32_MODE_ALTERNATE | PAL_STM32_OTYPE_PUSHPULL | PAL_STM32_OSPEED_HIGHEST | PAL_STM32_ALTERNATE(1));
-    /* USART2 RX.       */
-    palSetPadMode(GPIOA, 3, PAL_STM32_MODE_ALTERNATE | PAL_STM32_PUPDR_PULLUP | PAL_STM32_ALTERNATE(1));
-    sdStart(&SD2, &uart_cfg);
+        /* USART2 TX.       */
+        palSetPadMode(GPIOA, 2, PAL_STM32_MODE_ALTERNATE | PAL_STM32_OTYPE_PUSHPULL | PAL_STM32_OSPEED_HIGHEST | PAL_STM32_ALTERNATE(1));
+        /* USART2 RX.       */
+        palSetPadMode(GPIOA, 3, PAL_STM32_MODE_ALTERNATE | PAL_STM32_PUPDR_PULLUP | PAL_STM32_ALTERNATE(1));
+        palSetPadMode(GPIOA, 15, PAL_STM32_MODE_INPUT | PAL_STM32_PUPDR_PULLUP );
+        sdStart(&SD2, &uart_cfg);
 }
 
 /* Initialize our serial subsystem */
