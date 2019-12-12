@@ -20,7 +20,6 @@
  */
 
 #include "system_serial.h"
-#include "logging.h"
 /*
  * Read a line from the specified serial connection into the specified
  * buffer buf with a length of buf_len
@@ -56,9 +55,6 @@ void system_serial_init_SD1(uint32_t speed)
     sdStart(&SD1, &uart_cfg);
 }
 
-/*
- * Initialize connection for SD2 (STN1110)
- */
 void system_serial_init_SD2(uint32_t speed)
 {
         static SerialConfig uart_cfg;
